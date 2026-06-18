@@ -19,6 +19,43 @@ description: >
   Improve mode (existing repos): "improve my repo", "upgrade github repo",
   "audit my github repo", "fix my readme", "enhance my repo",
   "github health check", "what's missing from my repo".
+
+  Help / intro: "github launch help", "what can you do", "show me github launch",
+  "github launch agent help", "how does this work".
+
+onInstall: >
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ⚡  github-launch-agent installed — v2.0.0
+
+  16 parallel agents. 3 modes. ~4 minutes for a full launch.
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  🚀  LAUNCH MODE  — fresh repo from scratch
+      Say: "agentic github launch"
+      What happens: SEO name scoring → competitor research →
+      social preview SVG → GitHub Pages → Product Hunt draft →
+      LinkedIn post → newsletter pitches → 7-day calendar.
+      Time: ~4 min.
+
+  ⚡  LITE MODE  — same pipeline, skip distribution
+      Say: "fast push" or "quick push"
+      What happens: everything in Launch except Phase 3 posts.
+      Time: ~2 min.
+
+  🔧  IMPROVE MODE  — upgrade a repo that already exists
+      Say: "improve my repo" or "github health check"
+      What happens: 6 parallel audit agents score your repo on
+      18 dimensions, rank every gap by ROI, then fix only what
+      you confirm. Never overwrites without showing a diff first.
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  I'll only ask 3 questions. Everything else is auto-detected.
+  Type "github launch help" anytime to see this again.
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ---
 
 # GitHub Launch Agent — Parallel Pipeline
@@ -115,8 +152,51 @@ Read the user's trigger phrase first. Route to the correct mode before doing any
 | "agentic github launch", "launch agent", "push to github", etc. | **LAUNCH MODE** | → STEP -1 (name scoring) |
 | "fast push", "quick push", "lite launch" | **LITE LAUNCH** | → STEP -1, skip Agent B + Phase 3 |
 | "improve my repo", "upgrade", "audit", "fix my readme", "what's missing", etc. | **IMPROVE MODE** | → IMPROVE STEP 1 |
+| "github launch help", "what can you do", "show me github launch", "how does this work" | **HELP MODE** | → HELP CARD |
 
 If the trigger is ambiguous, ask: "Are you launching a new repo or improving an existing one?"
+
+---
+
+## HELP MODE — Intro Card
+
+When routed to HELP MODE, output this card verbatim (fill nothing, no questions):
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡  github-launch-agent — v2.0.0
+    16 parallel agents · 3 modes · ~4 min for a full launch
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀  LAUNCH MODE — fresh repo, full pipeline
+    Trigger: "agentic github launch"  ·  Time: ~4 min
+    ✓ SEO name scoring (5 candidates ranked)
+    ✓ Competitor README research (top 3 repos mined)
+    ✓ Social preview SVG auto-embedded in README
+    ✓ GitHub Pages landing site
+    ✓ Product Hunt draft · LinkedIn post · Newsletter pitches
+    ✓ 7-day timed distribution calendar
+
+⚡  LITE MODE — push fast, skip distribution
+    Trigger: "fast push" or "quick push"  ·  Time: ~2 min
+    ✓ Everything in Launch except Phase 3 distribution posts
+    ✓ Good for internal tools or private-first launches
+
+🔧  IMPROVE MODE — audit and upgrade an existing repo
+    Trigger: "improve my repo" or "github health check"
+    ✓ 6 parallel audit agents score 18 README dimensions
+    ✓ Every gap ranked by ROI — Quick Wins flagged first
+    ✓ Health Score: current/100 → projected/100
+    ✓ Never overwrites without showing a diff + getting confirmation
+    ✓ Fixes: topics, description, README, CHANGELOG, version
+      consistency, repo settings, branch protection, Dependabot
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I'll only ask 3 questions — everything else is auto-detected.
+
+Ready? Just say one of the trigger phrases above.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 ---
 
