@@ -20,9 +20,6 @@ description: >
   "audit my github repo", "fix my readme", "enhance my repo",
   "github health check", "what's missing from my repo".
 
-  Help / intro: "github launch help", "what can you do", "show me github launch",
-  "github launch agent help", "how does this work".
-
 onInstall: >
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
