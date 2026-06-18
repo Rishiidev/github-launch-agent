@@ -1,28 +1,24 @@
 ---
 name: github-launch-agent
 description: >
-  Agentic GitHub launch pipeline with 16 parallel agents across 3 phases. Cuts
-  full launch time from 20 minutes to 4. Includes SEO name scoring (5 candidates
-  ranked before touching anything), competitor README mining for research-backed
-  copy, social preview SVG auto-embedded in README header, GitHub Pages landing
-  page with click-to-copy install, 5 scored repo description candidates, FUNDING.yml
-  sponsorship button, SECURITY.md, Discussions welcome post, demo recording storyboard,
-  Product Hunt launch draft, LinkedIn post, newsletter pitches (TLDR AI, The Rundown
-  AI, Ben's Bites), DEV.to article draft, and a 7-day timed distribution calendar.
-  Evolved from github-launch — same full pipeline, parallel execution, 4 more channels.
+  Agentic GitHub launch pipeline. 16 parallel agents, 3 phases, ~4 minutes. SEO
+  name scoring, competitor README research, social preview SVG, GitHub Pages,
+  Product Hunt draft, LinkedIn post, newsletter pitches, DEV.to article, 7-day
+  distribution calendar. Works for Claude Code skills, plugins, Node/Python/Go/
+  Rust/any repo.
 
-  TRIGGER when user says any of: "agentic github launch", "parallel github launch",
-  "fast github launch", "launch agent", "github launch agent", "push to github fast",
-  "agentic launch", "parallel launch", "launch with agents".
+  Triggers: "agentic github launch", "parallel github launch", "launch agent",
+  "github launch agent", "push to github fast", "agentic launch",
+  "parallel launch", "launch with agents".
 
-  LITE MODE — skip competitor research and all distribution: "fast push", "quick push",
-  "push now", "lite launch". Runs Steps -1 through Pages only. Under 2 minutes.
+  Lite mode (skip Phase 3): "fast push", "quick push", "push now", "lite launch".
 
-  Also handles all base skill triggers (overrides github-launch if both installed):
-  "push to github", "github launch", "publish skill", "make it viral on github",
+  Base triggers: "push to github", "github launch", "publish skill",
   "github everything", "full github setup", "github seo".
 
-  Works for: Claude Code skills (.skill files), plugins, Node/Python/Go/Rust/any repo.
+  Improve mode (existing repos): "improve my repo", "upgrade github repo",
+  "audit my github repo", "fix my readme", "enhance my repo",
+  "github health check", "what's missing from my repo".
 ---
 
 # GitHub Launch Agent — Parallel Pipeline
@@ -31,20 +27,121 @@ description: >
 
 ---
 
+## PIPELINE AT A GLANCE
+
+```
+STEP -1   SEO name scoring         5 candidates ranked; user picks
+STEP  0   Minimal inputs           3 questions (everything else auto-detected)
+STEP  1   Pre-flight safety        auth · secrets · git state · .skill path
+─────────────────────────────────────────────────────────────
+PARALLEL PHASE 1  (4 agents simultaneous)
+  A  Project intelligence          value prop, before/after, measurable benefit
+  B  Competitor research           topics, README patterns, description candidates
+     [LITE: skip B — use placeholder topics, no competitor data]
+  C  Social preview SVG            generic template filled from Agent A output
+  D  Supporting files              CHANGELOG, .gitignore, CONTRIBUTING, LICENSE,
+                                   FUNDING.yml, SECURITY.md, PR template
+─────────────────────────────────────────────────────────────
+PHASE 1 SYNTHESIS  (sequential, steps 1–10)
+  1  Refine SVG tagline            if Agent A has a stronger value prop
+  2  Choose description            pick top-scored from Agent B candidates
+  3  Choose 20 topics              Agent B recommended_20
+  4  Write .claude-plugin/plugin.json
+  5  Write .claude-plugin/marketplace.json
+  6  Write .github/workflows/validate.yml
+  7  Write .github/ISSUE_TEMPLATE/feature-request.yml
+  8  Write .github/ISSUE_TEMPLATE/bug-report.yml
+  9  Write README.md               SVG embedded as first element
+  10 Write .github/workflows/package-skill.yml
+─────────────────────────────────────────────────────────────
+GIT OPS   init → create repo → push
+─────────────────────────────────────────────────────────────
+PARALLEL PHASE 2  (4 agents simultaneous)
+  E  Topics + description          20 SEO topics set
+  F  Discussions + issues          enabled
+  G  Labels + good-first-issue     5 labels, tailored issue
+  H  GitHub release                v1.0.0 + .skill attachment
+─────────────────────────────────────────────────────────────
+GitHub Pages   write docs/index.html → commit → enable → verify → set homepage
+Discussions    post welcome thread (skip silently if GraphQL fails)
+Validation     7-check pass/fail with auto-fix
+Demo storyboard   .github/record-demo.sh
+─────────────────────────────────────────────────────────────
+PARALLEL PHASE 3  (8 agents simultaneous)  [LITE: skip entirely]
+  I  Reddit post (r/ClaudeAI)
+  J  X/Twitter thread (4 tweets)
+  K  Hacker News Show HN
+  L  Awesome-list PR draft
+  M  LinkedIn post
+  N  Product Hunt copy
+  O  Newsletter pitches (TLDR AI, The Rundown AI, Ben's Bites)
+  P  DEV.to article draft
+─────────────────────────────────────────────────────────────
+7-Day Launch Calendar   absolute dates from TODAY
+Final Report
+```
+
+---
+
+## VARIABLE REGISTRY
+
+Track all named variables throughout the pipeline. Reference these names consistently.
+
+| Variable | Set at | Description |
+|----------|--------|-------------|
+| `REPO_NAME` | Step -1 | Chosen repo name |
+| `REPO_DESC` | Phase 1 Synthesis step 2 | Top-scored description ≤100 chars |
+| `TOPICS_LIST` | Phase 1 Synthesis step 3 | 20 SEO topics |
+| `STACK` | Step 1 pre-flight (auto-detected) | e.g. "claude-skill", "node-lib" |
+| `SKILL_PATH` | Step 0 Q2 (or "none") | Absolute path to .skill file |
+| `PAGES_ENABLED` | Step 0 Q3 | true/false |
+| `VALUE_PROP` | Agent A | One sentence with a number |
+| `BEFORE_STATE` | Agent A | 2–3 sentences, concrete |
+| `AFTER_STATE` | Agent A | 2–3 sentences, concrete |
+| `CATEGORY` | Agent A | claude-skill, node-lib, python-tool, etc. |
+| `MAIN_TRIGGER` | Agent A | Primary activation phrase |
+| `INSTALL_CMD` | Agent A | Full install command |
+| `TODAY` | Runtime | Current date in YYYY-MM-DD format |
+| `CUSTOM_DOMAIN` | Step 0 Q3 (optional) | e.g. tools.yourdomain.com or "" |
+
+---
+
+## ROUTING
+
+Read the user's trigger phrase first. Route to the correct mode before doing anything else.
+
+| Trigger type | Mode | Entry point |
+|---|---|---|
+| "agentic github launch", "launch agent", "push to github", etc. | **LAUNCH MODE** | → STEP -1 (name scoring) |
+| "fast push", "quick push", "lite launch" | **LITE LAUNCH** | → STEP -1, skip Agent B + Phase 3 |
+| "improve my repo", "upgrade", "audit", "fix my readme", "what's missing", etc. | **IMPROVE MODE** | → IMPROVE STEP 1 |
+
+If the trigger is ambiguous, ask: "Are you launching a new repo or improving an existing one?"
+
+---
+
 ## HOW PARALLEL PHASES WORK
 
 When you reach an `═══ PARALLEL PHASE N ═══` section, call the Agent tool for ALL
 listed agents in a **single response**. Do not call them one at a time. Independent
-agents run simultaneously — this is what cuts wall-clock time from 20 minutes to 4.
+agents run simultaneously — this cuts wall-clock time from 20 minutes to 4.
 
 After every parallel phase, synthesize all outputs before proceeding.
+
+**If an agent fails or returns malformed output:**
+- Agent A fails → STOP. Cannot proceed without intelligence. Re-run Agent A alone.
+- Agent B fails → Use empty competitor_patterns + generate 5 generic description candidates inline. Continue.
+- Agent C fails → Continue without SVG. Create placeholder image reference in README. Note in final report.
+- Agent D fails → Continue. Write failed files manually in Synthesis. Note in final report.
+- Any Phase 2 agent fails → Retry that agent once. If it fails again, skip and note in final report.
+- Any Phase 3 agent fails → Skip and note in final report. Distribution is additive, not blocking.
 
 ---
 
 ## STEP -1 — SEO Name Optimization
 
-Do this BEFORE asking anything else. Read project files if they exist. If none exist,
-score from the description the user provided when triggering this skill.
+Do this BEFORE asking anything else. If project files exist, read them. If none exist,
+derive from the user's trigger phrase description.
 
 ### Generate 5 name candidates
 
@@ -63,46 +160,46 @@ Score each candidate on 4 axes (1–5 per axis, 20 max):
 | **Memorability** | ≤22 chars, clear word boundaries | Long or confusing |
 | **Category signal** | Instantly clear what it does | Could be anything |
 
-Present as a table with the user's default name at the top row:
+Present as a table with the user's default name at the top row (if provided):
 
 ```
 Name                      | Sat | KW | Mem | Sig | Total | Verdict
 --------------------------|-----|----|-----|-----|-------|--------
 (user's default)          |  X  |  X |  X  |  X  |  X    | Your default
 github-launch-agent       |  4  |  5 |  4  |  5  |  18   | ★ Recommended
-agentic-github-launch     |  5  |  4 |  3  |  4  |  16   |
 ...
 ```
 
 Tell the user: "Your default scores X/20. I recommend Y (scored Z/20) because [reason]."
-Let them pick any name or type their own. **Store the chosen name as REPO_NAME. Use it everywhere.**
+Let them pick any name or type their own. **Store the chosen name as REPO_NAME.**
 
 ---
 
-## STEP 0 — Collect Remaining Inputs (One Message)
+## STEP 0 — Minimal Inputs (3 Questions, One Message)
 
-Ask all of these in ONE message after the name is chosen:
+Auto-detect what you can. Ask only what you cannot.
+
+**Auto-detect before asking:**
+- Stack/language → read files in project dir (package.json → node-lib, requirements.txt/pyproject.toml → python-tool, go.mod → go-tool, Cargo.toml → rust-tool, SKILL.md → claude-skill, Dockerfile → docker-app). Default: "cli-tool".
+- License → default MIT
+- Discussions → default yes
+- Co-author line → default keep
+- Custom domain → default none
+
+**Ask these 3 only:**
 
 ```
-1. Public or private? (Default: public — skills must be public to install)
-2. License? (Default: MIT)
-3. Primary language/stack? (e.g. Claude skill, Node.js, Python, Go)
-4. Do you have a .skill file to attach to the release? If yes, path?
-5. GitHub Pages landing page? (Default: yes)
-   → Generates docs/index.html + enables Pages
-   → Your repo gets a free website at Rishiidev.github.io/REPO_NAME
-   → Sets this URL as the repo homepage (indexed by Google, shareable)
-6. GitHub Discussions? (Default: yes)
-7. Remove "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>" from commit
-   messages? (Default: no — keep it for transparency)
-8. Custom domain for GitHub Pages? (e.g. tools.yourdomain.com)
-   → Leave blank to use Rishiidev.github.io/REPO_NAME
-   → If provided: writes docs/CNAME + prints DNS setup instructions
+1. Public or private? (Default: public)
+2. Path to .skill file to attach to the release? (Default: none — leave blank to skip)
+3. GitHub Pages landing page? (Default: yes)
+   Your repo gets a free site at Rishiidev.github.io/REPO_NAME
+   → If yes: custom domain? (e.g. tools.yourdomain.com — leave blank for default)
 ```
 
-Note: social preview SVG is always generated — no need to ask.
+Store: REPO_NAME (from Step -1), SKILL_PATH, PAGES_ENABLED, CUSTOM_DOMAIN, STACK, TODAY.
 
-Store all 8 answers. Do not ask again.
+**Derive TODAY** from the system date available in context (e.g. 2026-06-18). Use it for
+all absolute dates in the 7-day calendar and changelog entries.
 
 ---
 
@@ -117,7 +214,7 @@ gh auth status
 # 2. Repo already exists?
 gh repo view Rishiidev/REPO_NAME --json name 2>&1
 
-# 3. Sensitive files
+# 3. Sensitive files — STOP if any found
 find <project-dir> \( -name ".env" -o -name "*.pem" -o -name "*.key" -o -name "secrets*" -o -name ".env.*" \) 2>/dev/null
 
 # 4. Git state
@@ -125,6 +222,12 @@ git -C <project-dir> rev-parse --git-dir 2>/dev/null && git -C <project-dir> log
 
 # 5. Default branch
 git -C <project-dir> config init.defaultBranch 2>/dev/null || echo "main"
+
+# 6. Validate .skill file path (if SKILL_PATH is not "none")
+[ -n "$SKILL_PATH" ] && [ "$SKILL_PATH" != "none" ] && test -f "$SKILL_PATH" && echo "✓ .skill found" || echo "✗ .skill not found at $SKILL_PATH — set SKILL_PATH=none"
+
+# 7. Check SKILL.md — do NOT overwrite if it exists
+find <project-dir> -name "SKILL.md" 2>/dev/null
 ```
 
 Decision logic:
@@ -133,6 +236,67 @@ Decision logic:
 - **Secrets found → STOP. List every file. Do not stage anything.**
 - No git init → `git init -b main`
 - Branch is `master` → warn, suggest: `git branch -m master main`
+- .skill file not found → set SKILL_PATH=none, warn user. Continue.
+- SKILL.md exists at destination path → note it, **never overwrite**.
+
+---
+
+## SYSTEM: Rate-Limit Guard
+
+Define this shell function ONCE at the start of every shell session before running
+any `gh api` command. Reference it as `gh_safe` wherever `gh api` is used for
+mutations (PATCH, POST, PUT, GraphQL). Read-only `gh api GET` calls can use `gh api`
+directly since they hit a higher rate limit tier.
+
+```bash
+# Paste this into the terminal before starting the pipeline
+gh_safe() {
+  local out rc
+  out=$(gh api "$@" 2>&1)
+  rc=$?
+  if [ $rc -ne 0 ] && printf '%s' "$out" | grep -qiE "rate.?limit|secondary rate|429|abuse detection"; then
+    echo "⚠  Rate limited — sleeping 60 s then retrying once..."
+    sleep 60
+    gh api "$@"
+  else
+    printf '%s\n' "$out"
+    return $rc
+  fi
+}
+```
+
+Agent prompts use the token `[gh_safe]` to mark calls that should use this wrapper
+instead of plain `gh api`. When pasting commands into a terminal, substitute
+`gh_safe` for `gh api` on those lines.
+
+---
+
+## SYSTEM: Resume / Checkpoint
+
+The pipeline writes a checkpoint file at `<project-dir>/.launch-state` after each
+major milestone. On **every run**, check this file first at Step 1 before spawning
+any agents:
+
+```bash
+STATE=<project-dir>/.launch-state
+[ -f "$STATE" ] && echo "=== Existing launch state ===" && cat "$STATE"
+```
+
+If the state file shows a completed milestone, **skip everything up to and including
+that milestone** and resume from the next step. Tell the user exactly what's being
+skipped and why.
+
+| Entry in .launch-state | Skip to |
+|------------------------|---------|
+| `phase1_done` | Git ops (Phase 1 + Synthesis already complete) |
+| `git_done` | Parallel Phase 2 |
+| `phase2_done` | GitHub Pages step |
+| `pages_done` | Discussions + Validation |
+| `phase3_done` | 7-Day Calendar (Phase 3 content already generated) |
+
+To start fresh and ignore the state, delete the file: `rm <project-dir>/.launch-state`
+
+Checkpoint writes are shown inline at each phase boundary below.
 
 ---
 
@@ -141,8 +305,8 @@ Decision logic:
 ## Spawn all 4 agents in a SINGLE response now.
 ## ═══════════════════════════════════════════════
 
-Call the Agent tool FOUR TIMES simultaneously. They are fully independent.
-Do not run them sequentially. Wait for all four before proceeding to synthesis.
+Call the Agent tool FOUR TIMES simultaneously (or THREE in LITE mode — skip B).
+Do not run them sequentially. Wait for all before proceeding to synthesis.
 
 ---
 
@@ -153,27 +317,31 @@ You are extracting launch intelligence from a project.
 
 Working directory: <project-dir>
 Repo name: REPO_NAME
-Stack: <from Step 0>
+Stack: STACK (auto-detected)
 
-Read ALL files. Then return this JSON:
+Read ALL files in the directory. Then return this JSON:
 
 {
   "value_prop": "One sentence with a number — e.g. 'Cuts GitHub launch from 20 min to 4'",
   "target_user": "Specific user type — e.g. 'developers publishing Claude Code skills'",
   "main_trigger": "Primary activation phrase",
+  "install_cmd": "/plugin install github:Rishiidev/REPO_NAME",
   "platforms": ["Claude Code", "Cowork", "Claude.ai"],
   "stack": "Confirmed from files",
-  "install_command": "/plugin install github:Rishiidev/REPO_NAME",
-  "before_state": "2-3 sentences: what the user's workflow looks like WITHOUT this. Concrete.",
-  "after_state": "2-3 sentences: what it looks like WITH this. Concrete.",
-  "measurable_benefit": "The biggest number you can derive — time saved, steps eliminated, etc.",
-  "category": "claude-skill | node-lib | python-tool | go-tool | rust-tool | cli-tool | web-app"
+  "before_state": "2-3 sentences: user workflow WITHOUT this. Concrete, specific.",
+  "after_state": "2-3 sentences: user workflow WITH this. Concrete, specific.",
+  "measurable_benefit": "The biggest number you can derive — time saved, steps cut, etc.",
+  "category": "claude-skill | node-lib | python-tool | go-tool | rust-tool | cli-tool | web-app | docker-app",
+  "features": ["Feature 1 (5 words max)", "Feature 2", "Feature 3", "Feature 4"],
+  "tagline": "6-8 word punchy phrase summarizing the core benefit"
 }
 
 Rules:
 - value_prop MUST include a number. Estimate if needed.
-- before_state and after_state must be specific to THIS project, not generic.
-- If no files exist yet, derive from the repo name and description provided.
+- before_state and after_state must be specific to THIS project. No generic sentences.
+- features must be the 4 most important things this project actually does.
+- If no project files exist, derive everything from REPO_NAME and the user's description.
+- Do not return placeholder text — derive every field from real project content.
 ```
 
 ---
@@ -183,39 +351,39 @@ Rules:
 ```
 Research GitHub for launch preparation.
 Project: REPO_NAME
-Description: <brief description from project context>
+Description: <brief description from context>
+Stack: STACK
 
-Run these commands:
+Run these search commands:
 
 gh search repos --topic claude --sort stars --limit 15 --json name,topics,description,stargazersCount
 gh search repos "github launch" --sort stars --limit 10 --json name,topics,description,stargazersCount
 gh search repos "claude skill" --sort stars --limit 10 --json name,topics,description,stargazersCount
 
-From the results, count topic frequency. Extract top 25 topics.
+Count topic frequency across all results. Extract top 25 topics.
 
 Identify the 3 most similar repos by relevance + star count. For each:
 gh api repos/<owner>/<repo>/readme --jq '.content' 2>/dev/null | base64 -d | head -120
 
 From those 3 READMEs, extract:
-- Headline format: does it have a number? Statement or question?
-- Install command position: early (within first 30 lines) / middle / late
-- Star CTA position: early / middle / late / absent
-- Value prop framing: outcome-first / feature-first / problem-first
+- headline_has_number: does the title contain a number?
+- install_position: within first 30 lines / middle / late
+- cta_position: early (before feature table) / middle / late / absent
+- value_prop_style: outcome-first / feature-first / problem-first
 
-Generate 5 scored repo description candidates (≤100 chars each):
-
-Score each on: has_number (2pts), action_first (2pts), benefit_clear (2pts),
-under_80_chars (2pts), no_jargon (2pts). Max 10 per candidate.
+Generate 5 scored repo description candidates for REPO_NAME (≤100 chars each):
+Score: has_number (2pts), action_verb_first (2pts), benefit_clear (2pts),
+       under_80_chars (2pts), no_jargon (2pts). Max 10.
 
 Return JSON:
 {
   "top_25_topics": ["topic1", "topic2", ...],
   "recommended_20": ["t1", "t2", ...],
   "competitor_patterns": {
-    "headline_has_number": true/false,
-    "install_position": "early|middle|late",
-    "cta_position": "early|middle|late",
-    "value_prop_style": "outcome-first|feature-first|problem-first"
+    "headline_has_number": true,
+    "install_position": "early",
+    "cta_position": "early",
+    "value_prop_style": "outcome-first"
   },
   "description_candidates": [
     {"text": "...", "score": 9, "breakdown": "number✓ action✓ benefit✓ short✓ clear✓"},
@@ -236,15 +404,19 @@ Generate a social preview SVG for this project.
 Write to: <project-dir>/assets/social-preview.svg
 Create the assets/ directory if needed.
 
-Fill in ALL placeholders before writing. No placeholder text left in the file.
+YOU MUST FILL EVERY PLACEHOLDER before writing. No template text in the output file.
 
-Project name: REPO_NAME
-Tagline: "4 parallel agents. Full GitHub launch in 4 minutes."
-          (Update this if you find a better value prop in the project files.)
-Install command: /plugin install github:Rishiidev/REPO_NAME
-GitHub username: Rishiidev
+Values to use (all derived from project context, not from github-launch-agent):
+  PROJECT_NAME   → REPO_NAME
+  PROJECT_TAGLINE → Agent A tagline field (6-8 word benefit phrase for THIS project)
+  INSTALL_CMD    → /plugin install github:Rishiidev/REPO_NAME
+  FEATURE_1 through FEATURE_4 → Agent A features array (4 items, 5 words max each)
+  USERNAME       → Rishiidev
 
-SVG to write:
+If Agent A output is not yet available, derive tagline and features directly from
+the project files you can read. Do NOT use any github-launch-agent content.
+
+Write this SVG with all placeholders replaced:
 
 <svg width="1280" height="640" xmlns="http://www.w3.org/2000/svg">
   <rect width="1280" height="640" fill="#0d1117"/>
@@ -255,59 +427,88 @@ SVG to write:
   </defs>
   <rect width="1280" height="640" fill="url(#grid)"/>
   <rect x="0" y="0" width="6" height="640" fill="#f0883e"/>
+
+  <!-- Category eyebrow — derive from CATEGORY field -->
   <text x="60" y="96" font-family="system-ui, sans-serif" font-size="20"
-        font-weight="600" fill="#f0883e" letter-spacing="4">AGENTIC CLAUDE CODE SKILL</text>
-  <text x="60" y="205" font-family="system-ui, sans-serif" font-size="76"
-        font-weight="800" fill="#ffffff">REPO_NAME</text>
-  <text x="60" y="265" font-family="system-ui, sans-serif" font-size="30"
-        fill="#8b949e">TAGLINE</text>
-  <!-- 4 parallel agent boxes -->
+        font-weight="600" fill="#f0883e" letter-spacing="4">CATEGORY_LABEL</text>
+
+  <!-- Project name -->
+  <text x="60" y="205" font-family="system-ui, sans-serif" font-size="72"
+        font-weight="800" fill="#ffffff">PROJECT_NAME</text>
+
+  <!-- Tagline — FROM AGENT A, specific to this project -->
+  <text x="60" y="265" font-family="system-ui, sans-serif" font-size="28"
+        fill="#8b949e">PROJECT_TAGLINE</text>
+
+  <!-- 4 feature boxes — FROM AGENT A features array, specific to this project -->
   <rect x="60" y="300" width="270" height="38" rx="6" fill="#161b22"/>
   <rect x="60" y="300" width="4" height="38" rx="2" fill="#58a6ff"/>
-  <text x="76" y="324" font-family="'Courier New', monospace" font-size="16"
-        fill="#58a6ff">▶ Agent A  Research</text>
+  <text x="76" y="324" font-family="'Courier New', monospace" font-size="15"
+        fill="#58a6ff">▶ FEATURE_1</text>
+
   <rect x="350" y="300" width="270" height="38" rx="6" fill="#161b22"/>
   <rect x="350" y="300" width="4" height="38" rx="2" fill="#3fb950"/>
-  <text x="366" y="324" font-family="'Courier New', monospace" font-size="16"
-        fill="#3fb950">▶ Agent B  Topics</text>
+  <text x="366" y="324" font-family="'Courier New', monospace" font-size="15"
+        fill="#3fb950">▶ FEATURE_2</text>
+
   <rect x="640" y="300" width="270" height="38" rx="6" fill="#161b22"/>
   <rect x="640" y="300" width="4" height="38" rx="2" fill="#f0883e"/>
-  <text x="656" y="324" font-family="'Courier New', monospace" font-size="16"
-        fill="#f0883e">▶ Agent C  SVG</text>
+  <text x="656" y="324" font-family="'Courier New', monospace" font-size="15"
+        fill="#f0883e">▶ FEATURE_3</text>
+
   <rect x="930" y="300" width="270" height="38" rx="6" fill="#161b22"/>
   <rect x="930" y="300" width="4" height="38" rx="2" fill="#d2a8ff"/>
-  <text x="946" y="324" font-family="'Courier New', monospace" font-size="16"
-        fill="#d2a8ff">▶ Agent D  Files</text>
-  <text x="60" y="366" font-family="system-ui, sans-serif" font-size="17"
-        fill="#484f58">⚡ all four running simultaneously</text>
+  <text x="946" y="324" font-family="'Courier New', monospace" font-size="15"
+        fill="#d2a8ff">▶ FEATURE_4</text>
+
   <!-- Install command block -->
   <rect x="60" y="393" width="1020" height="64" rx="8" fill="#161b22"/>
   <rect x="60" y="393" width="4" height="64" rx="2" fill="#f0883e"/>
   <text x="86" y="430" font-family="'Courier New', monospace" font-size="23"
         fill="#f0883e">$</text>
   <text x="114" y="430" font-family="'Courier New', monospace" font-size="23"
-        fill="#e6edf3">/plugin install github:Rishiidev/REPO_NAME</text>
-  <!-- Feature pills -->
-  <rect x="60" y="488" width="156" height="34" rx="17" fill="#161b22"/>
-  <text x="138" y="510" font-family="system-ui, sans-serif" font-size="15"
-        fill="#8b949e" text-anchor="middle">4x faster</text>
-  <rect x="230" y="488" width="190" height="34" rx="17" fill="#161b22"/>
-  <text x="325" y="510" font-family="system-ui, sans-serif" font-size="15"
-        fill="#8b949e" text-anchor="middle">parallel agents</text>
-  <rect x="434" y="488" width="184" height="34" rx="17" fill="#161b22"/>
-  <text x="526" y="510" font-family="system-ui, sans-serif" font-size="15"
-        fill="#8b949e" text-anchor="middle">GitHub Pages</text>
-  <rect x="632" y="488" width="196" height="34" rx="17" fill="#161b22"/>
-  <text x="730" y="510" font-family="system-ui, sans-serif" font-size="15"
-        fill="#8b949e" text-anchor="middle">competitor research</text>
-  <rect x="842" y="488" width="192" height="34" rx="17" fill="#161b22"/>
-  <text x="938" y="510" font-family="system-ui, sans-serif" font-size="15"
-        fill="#8b949e" text-anchor="middle">7-day calendar</text>
+        fill="#e6edf3">INSTALL_CMD</text>
+
+  <!-- Feature pills — derive 5 short benefit phrases from Agent A -->
+  <rect x="60" y="488" width="160" height="34" rx="17" fill="#161b22"/>
+  <text x="140" y="510" font-family="system-ui, sans-serif" font-size="14"
+        fill="#8b949e" text-anchor="middle">PILL_1</text>
+
+  <rect x="234" y="488" width="160" height="34" rx="17" fill="#161b22"/>
+  <text x="314" y="510" font-family="system-ui, sans-serif" font-size="14"
+        fill="#8b949e" text-anchor="middle">PILL_2</text>
+
+  <rect x="408" y="488" width="160" height="34" rx="17" fill="#161b22"/>
+  <text x="488" y="510" font-family="system-ui, sans-serif" font-size="14"
+        fill="#8b949e" text-anchor="middle">PILL_3</text>
+
+  <rect x="582" y="488" width="160" height="34" rx="17" fill="#161b22"/>
+  <text x="662" y="510" font-family="system-ui, sans-serif" font-size="14"
+        fill="#8b949e" text-anchor="middle">PILL_4</text>
+
+  <rect x="756" y="488" width="160" height="34" rx="17" fill="#161b22"/>
+  <text x="836" y="510" font-family="system-ui, sans-serif" font-size="14"
+        fill="#8b949e" text-anchor="middle">PILL_5</text>
+
   <text x="1220" y="610" font-family="system-ui, sans-serif" font-size="19"
-        fill="#484f58" text-anchor="end">github.com/Rishiidev</text>
+        fill="#484f58" text-anchor="end">github.com/USERNAME</text>
 </svg>
 
-After writing, confirm the file path.
+CATEGORY_LABEL mapping (derive from CATEGORY):
+  claude-skill → "CLAUDE CODE SKILL"
+  node-lib     → "NODE.JS LIBRARY"
+  python-tool  → "PYTHON TOOL"
+  go-tool      → "GO CLI TOOL"
+  rust-tool    → "RUST TOOL"
+  cli-tool     → "COMMAND LINE TOOL"
+  web-app      → "WEB APPLICATION"
+  docker-app   → "DOCKER APPLICATION"
+
+PILL_1 through PILL_5: derive 5 short (1-2 words) benefit phrases from Agent A's
+value_prop and features. Examples: "open source", "MIT license", "zero config",
+"one command", "self-hosted". Make them specific to the project, not generic.
+
+After writing, confirm the file path. Do not write any placeholder text to disk.
 ```
 
 ---
@@ -317,9 +518,14 @@ After writing, confirm the file path.
 ```
 Write these 7 files for project REPO_NAME.
 GitHub username: Rishiidev
-License: <from Step 0>
-Stack: <from Step 0>
-Date: 2026-06-18
+License: MIT
+Stack: STACK
+Category: CATEGORY (from Agent A, or derive from STACK)
+Date: TODAY
+Project description: VALUE_PROP (from Agent A, or derive from project files)
+
+IMPORTANT: All templates below must be filled with project-specific content.
+Do not include github-launch-agent content in any file.
 
 --- File 1: CHANGELOG.md ---
 # Changelog
@@ -327,21 +533,16 @@ Date: 2026-06-18
 All notable changes documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [1.0.0] — 2026-06-18
+## [1.0.0] — TODAY
 
 ### Added
-- Parallel Phase 1: research, SVG, topics, and files run simultaneously (4 agents)
-- Parallel Phase 2: post-push config (topics, discussions, labels, release) simultaneous
-- Parallel Phase 3: distribution drafts (Reddit, X, HN, awesome-list) simultaneous
-- SEO name scoring: 5 candidates scored on saturation, keywords, memorability, signal
-- Competitor README mining: top 3 similar repos analyzed before writing README
-- Social preview SVG auto-embedded as README hero image
-- GitHub Pages landing page (docs/index.html) with click-to-copy install
-- 5 scored repo description candidates — pick the highest or choose any
-- 7-day timed distribution calendar with platform-specific posting windows
-- Total time: ~4–6 minutes vs ~15–20 minutes sequential
+[Write 4-6 bullet points describing what version 1.0.0 of REPO_NAME adds.
+Derive from the project files and VALUE_PROP. Be specific to this project.
+Do not describe github-launch-agent features unless this IS github-launch-agent.]
 
---- File 2: .gitignore (stack-appropriate + always these) ---
+--- File 2: .gitignore ---
+[Generate a stack-appropriate .gitignore based on STACK/CATEGORY.
+Always include these regardless of stack:]
 .DS_Store
 *.log
 *.zip
@@ -350,48 +551,50 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 *.pem
 *.key
 secrets*
-node_modules/
-__pycache__/
-*.pyc
-.venv/
-dist/
-build/
-*.skill.bak
 
---- File 3: CONTRIBUTING.md (≤40 lines) ---
-# Contributing
+[Add stack-specific entries based on STACK:
+  node-lib     → node_modules/ dist/ build/ *.tgz .npm/
+  python-tool  → __pycache__/ *.pyc .venv/ venv/ dist/ build/ *.egg-info/
+  go-tool      → vendor/ *.test
+  rust-tool    → target/ Cargo.lock (if library)
+  claude-skill → *.skill.bak
+  docker-app   → .docker/ docker-compose.override.yml
+  web-app      → node_modules/ .next/ .nuxt/ dist/]
 
-## What's welcome
-- New trigger phrases (with before/after test showing it activates correctly)
-- Better agent prompts (with quality comparison showing improvement)
-- Additional parallel phases for currently-sequential steps
-- Bug fixes where a step produces wrong output
+--- File 3: CONTRIBUTING.md (≤50 lines) ---
+# Contributing to REPO_NAME
 
-## How to test
-Paste the SKILL.md into Claude Code. Trigger with "agentic github launch".
-Verify: Phase 1 spawns 4 agents simultaneously (not sequentially).
-Verify: README has SVG embedded as first element in the header div.
-Verify: docs/index.html is generated if GitHub Pages was enabled.
+[Write category-appropriate contributing guidelines.
 
-## PR format
-Every PR must include:
-1. What step/agent changed
-2. Before prompt / after prompt
-3. Output comparison showing improvement
+For claude-skill:
+  - How to test trigger phrases
+  - How to verify agent output quality
+  - PR format: what changed, before/after output
 
-## What must never change
-- The PARALLEL PHASE structure (sequential execution breaks the time guarantee)
-- The SVG embedding rule in README (it is always the first element)
-- The safety check: pipeline stops on secrets found
-- SKILL.md is never overwritten if it already exists
+For node-lib:
+  - npm install, npm test
+  - TypeScript type requirements
+  - Semver guidance
 
-## Start here
-See issue #1 for a good first contribution.
+For python-tool:
+  - pip install -e ".[dev]", pytest
+  - Type hints required
+  - Docstring format
+
+For go-tool / rust-tool / cli-tool / web-app / docker-app:
+  - Build and test commands specific to that stack
+  - Code style requirements
+  - PR checklist
+
+All categories include:
+  - How to open a good bug report
+  - Good-first-issue guidance
+  - One-paragraph welcome message]
 
 --- File 4: LICENSE ---
 MIT License
 
-Copyright (c) 2026 Rishiidev
+Copyright (c) TODAY_YEAR Rishiidev
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -413,37 +616,38 @@ SOFTWARE.
 
 --- File 5: .github/FUNDING.yml ---
 github: [Rishiidev]
-# To add more funding options see:
-# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-github-repository/displaying-a-sponsor-button-in-your-repository
 
 --- File 6: SECURITY.md ---
 # Security Policy
 
+## Supported Versions
+
+| Version | Supported |
+|---------|-----------|
+| 1.x     | ✓ |
+
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in this project, please **do not** open a
-public issue. Instead, open a [GitHub Issue](https://github.com/Rishiidev/REPO_NAME/issues/new)
-with the title prefix `[SECURITY]` — this keeps the report visible only to the
-maintainers until it is resolved.
+Do not open a public issue for security vulnerabilities.
+Open a [GitHub Issue](https://github.com/Rishiidev/REPO_NAME/issues/new)
+with the prefix `[SECURITY]` — visible to maintainers only.
 
-Please include:
-- Description of the vulnerability
-- Steps to reproduce
-- Potential impact
-
-We aim to respond within 72 hours and resolve confirmed issues within 7 days.
+Include: description, steps to reproduce, potential impact.
+Response within 72 hours. Resolution within 7 days for confirmed issues.
 
 ## Scope
 
-This project is a Claude Code skill (prompt-based). Vulnerabilities include:
-- Prompt injection vectors in skill inputs
-- Instructions that could cause unintended data exposure or deletion
-- Safety check bypasses (e.g. skipping the secrets scan)
+[Write 3-5 scope items appropriate to CATEGORY.
+For claude-skill: prompt injection, unintended data exposure, safety bypass.
+For node-lib: dependency vulnerabilities, prototype pollution, unsafe deserialization.
+For python-tool: code injection, path traversal, dependency issues.
+For web-app: XSS, CSRF, injection attacks, auth bypass.
+For cli-tool: command injection, path traversal, privilege escalation.]
 
 --- File 7: .github/PULL_REQUEST_TEMPLATE.md ---
 ## What this changes
 
-<!-- Which step, agent, or file changed? Be specific: "Agent B prompt", "Step 0 Q3", "validate.yml" -->
+<!-- Which component, function, or file changed? Be specific. -->
 
 ## Why
 
@@ -452,42 +656,57 @@ This project is a Claude Code skill (prompt-based). Vulnerabilities include:
 ## Before / after
 
 Before:
-(paste old prompt or output here)
+(paste old behavior or output)
 
 After:
-(paste new output showing the improvement)
+(paste improved behavior or output)
 
 ## Checklist
 
-- [ ] PARALLEL PHASE structure unchanged (or explain why it changed)
-- [ ] SVG embedding rule in README untouched
-- [ ] Secrets scan still runs in Step 1
-- [ ] SKILL.md not overwritten if it already exists
-- [ ] Tested: trigger phrase activates the skill correctly
-- [ ] No placeholder text left unfilled in any generated file
+[Generate 4-6 checklist items appropriate to CATEGORY and REPO_NAME.
+For claude-skill: trigger phrase tested, output quality verified, SKILL.md not overwritten.
+For node-lib: tests pass, types updated, examples work.
+For python-tool: pytest passes, type hints added, docstrings updated.
+For go-tool: go test ./... passes, go vet clean.
+For web-app: manual smoke test in browser, responsive on mobile.
+All: No secrets committed, no placeholder text left unfilled.]
 
 Write all 7 files to <project-dir>. Confirm each file written.
+TODAY_YEAR = first 4 chars of TODAY (e.g. "2026" from "2026-06-18").
 ```
 
 ---
 
 ## PHASE 1 SYNTHESIS
 
-After all 4 agents complete, do these steps in order:
+After all agents complete (or after fallback handling for any failures), execute these
+steps IN ORDER. Do not skip any. Do not reorder them.
 
-### 1. Refine SVG if needed
-If Agent A's `value_prop` is more compelling than "4 parallel agents. Full GitHub launch
-in 4 minutes." — update only the tagline line in `assets/social-preview.svg`.
+### Step 1 — Refine SVG Tagline
 
-### 2. Choose description
-From Agent B's 5 candidates, use the top-scored one. Store it as REPO_DESC.
-Show the user the scored table and which was selected.
+Compare Agent A's `value_prop` against the tagline in the SVG.
+If value_prop is more compelling and shorter, update only the tagline line in
+`assets/social-preview.svg`. Do not modify any other SVG content.
 
-### 3. Choose 20 topics
+### Step 2 — Choose Description
+
+Display Agent B's 5 scored description candidates to the user as a table.
+Auto-select the top-scored one as REPO_DESC.
+Tell the user: "I've selected [REPO_DESC] (score N/10). Say any number 1–5 to pick
+another, or type your own."
+
+If Agent B failed → generate 3 candidates inline based on Agent A's value_prop.
+Apply the same scoring criteria. Select the top.
+
+### Step 3 — Choose 20 Topics
+
 Use Agent B's `recommended_20`. If fewer than 20, fill from `top_25_topics`.
+If Agent B failed → generate 20 topics from: stack keywords, category keywords,
+"github", "open-source", "developer-tools", and 10 terms from the value_prop/features.
 Store as TOPICS_LIST.
 
-### 4. Write `.claude-plugin/plugin.json`
+### Step 4 — Write `.claude-plugin/plugin.json`
+
 ```json
 {
   "name": "REPO_NAME",
@@ -496,12 +715,13 @@ Store as TOPICS_LIST.
   "author": { "name": "Rishiidev" },
   "homepage": "https://Rishiidev.github.io/REPO_NAME",
   "repository": "https://github.com/Rishiidev/REPO_NAME",
-  "license": "<from Step 0>",
+  "license": "MIT",
   "skills": "./skills"
 }
 ```
 
-### 5. Write `.claude-plugin/marketplace.json`
+### Step 5 — Write `.claude-plugin/marketplace.json`
+
 ```json
 {
   "name": "REPO_NAME",
@@ -517,14 +737,15 @@ Store as TOPICS_LIST.
   "plugins": [
     {
       "name": "REPO_NAME",
-      "description": "<3 sentences: what it does, trigger phrases, platforms>",
+      "description": "<3 sentences: what it does · trigger phrases · supported platforms>",
       "source": "./"
     }
   ]
 }
 ```
 
-### 6. Write `.github/workflows/validate.yml`
+### Step 6 — Write `.github/workflows/validate.yml`
+
 ```yaml
 name: Validate
 on: [push, pull_request]
@@ -533,78 +754,188 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check SKILL.md exists
-        run: test -f skills/*/SKILL.md && echo "✓ SKILL.md found"
+      - name: Check README exists
+        run: test -f README.md && echo "✓ README.md found"
       - name: Check plugin.json exists
         run: test -f .claude-plugin/plugin.json && echo "✓ plugin.json found"
-      - name: Check SKILL.md frontmatter
-        run: head -1 skills/*/SKILL.md | grep -q "^---" && echo "✓ frontmatter present"
       - name: Check social preview exists
         run: test -f assets/social-preview.svg && echo "✓ social preview found"
+      - name: Check SKILL.md exists (claude-skill only)
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          if find skills -name "SKILL.md" 2>/dev/null | grep -q .; then
+            echo "✓ SKILL.md found"
+          else
+            echo "ℹ No SKILL.md — skipping (not a claude-skill)"
+          fi
+      - name: Lint JSON files
+        run: |
+          for f in $(find . -name "*.json" -not -path "*/node_modules/*"); do
+            python3 -c "import json,sys; json.load(open('$f'))" && echo "✓ $f valid" || exit 1
+          done
 ```
 
-### 7. Write `.github/ISSUE_TEMPLATE/feature-request.yml`
+### Step 7 — Write `.github/ISSUE_TEMPLATE/feature-request.yml`
+
 ```yaml
 name: Feature Request
-description: Suggest an improvement to the skill pipeline
+description: Suggest an improvement
 labels: ["enhancement"]
 body:
   - type: textarea
     id: problem
     attributes:
       label: What problem does this solve?
-      description: What step or outcome could be better?
     validations:
       required: true
   - type: textarea
     id: solution
     attributes:
       label: Proposed solution
-      description: Before/after prompt or behavior change
+      description: Before/after showing the improvement
     validations:
       required: true
   - type: textarea
     id: test
     attributes:
       label: How to verify
-      description: How will we know this is an improvement?
     validations:
       required: true
 ```
 
-### 8. Write `.github/ISSUE_TEMPLATE/bug-report.yml`
+### Step 8 — Write `.github/ISSUE_TEMPLATE/bug-report.yml`
+
 ```yaml
 name: Bug Report
-description: A step produced wrong output or failed
+description: Something produced wrong output or failed
 labels: ["bug"]
 body:
   - type: textarea
     id: trigger
     attributes:
-      label: Trigger phrase used
-    validations:
-      required: true
-  - type: textarea
-    id: step
-    attributes:
-      label: Which step or agent failed
+      label: How to reproduce
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: Expected output
+      label: Expected behavior
     validations:
       required: true
   - type: textarea
     id: actual
     attributes:
-      label: Actual output
+      label: Actual behavior
     validations:
       required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: "1.0.0"
 ```
 
-### 10. Write `.github/workflows/package-skill.yml`
+### Step 9 — Write README.md
+
+Apply `competitor_patterns` from Agent B. Use `before_state`/`after_state` from Agent A.
+
+**MANDATORY RULE — SVG in README:**
+The social preview SVG must be the FIRST element inside `<div align="center">`.
+Do not skip it. Format:
+```html
+<img src="assets/social-preview.svg" alt="REPO_NAME — VALUE_PROP" width="100%"/>
+```
+
+**MANDATORY RULE — First 160 chars after title block:**
+Must be the value_prop sentence. GitHub search shows these chars. No code blocks or
+tables before this sentence.
+
+**MANDATORY RULE — Star CTA placement:**
+Place it BEFORE the feature tables. People who stop reading mid-page still see it.
+
+**MANDATORY RULE — UTM parameters:**
+All GitHub links in distribution content use `?utm_source=readme`. The star link in
+the README header uses no UTM (it's organic). Distribution links use platform UTMs.
+
+```markdown
+# ⚡ REPO_NAME — [5-word value prop from Agent A]
+
+<div align="center">
+  <img src="assets/social-preview.svg" alt="REPO_NAME — VALUE_PROP" width="100%"/>
+  <br/><br/>
+
+**VALUE_PROP**
+
+[![Stars](https://img.shields.io/github/stars/Rishiidev/REPO_NAME?style=for-the-badge&color=gold)](https://github.com/Rishiidev/REPO_NAME/stargazers)
+[![CI](https://github.com/Rishiidev/REPO_NAME/actions/workflows/validate.yml/badge.svg)](https://github.com/Rishiidev/REPO_NAME/actions)
+[![License](https://img.shields.io/github/license/Rishiidev/REPO_NAME?style=for-the-badge)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)](https://github.com/Rishiidev/REPO_NAME/releases)
+
+*Works in [PLATFORMS from Agent A]*
+
+</div>
+
+> VALUE_PROP [max 160 chars from here — this is what GitHub search shows]
+
+---
+
+## The Problem
+[BEFORE_STATE — 3-4 lines, concrete, written like someone who's been there]
+
+## The Fix
+[AFTER_STATE — 1-3 lines + the main trigger in a code block]
+
+---
+
+## Install
+
+| Platform | Command |
+|----------|---------|
+| **Claude Code** | `INSTALL_CMD` |
+| **Cowork** | `INSTALL_CMD` |
+| **Claude.ai** | Download [`.skill` file](../../releases/latest) → import |
+
+---
+
+<div align="center">
+<b>MEASURABLE_BENEFIT. Star it — 2 seconds.</b><br>
+<a href="https://github.com/Rishiidev/REPO_NAME">⭐ Star on GitHub</a>
+</div>
+
+---
+
+## How It Works
+[Pipeline or architecture description appropriate to the category.
+For claude-skill: list the trigger phrases and what happens.
+For node-lib: show the API with a code example.
+For cli-tool: show --help output or key subcommands.
+For web-app: show the key flows.]
+
+## What It Builds / What It Does
+[File tree or feature list appropriate to category]
+
+## Trigger Phrases / API Reference
+[Table of all triggers for claude-skill, or API surface for libraries]
+
+## Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=Rishiidev/REPO_NAME&type=Date)](https://star-history.com/#Rishiidev/REPO_NAME&Date)
+
+---
+
+MIT License · [Rishiidev](https://github.com/Rishiidev)
+
+---
+
+<div align="center">
+<b>Found REPO_NAME useful? A ⭐ helps others find it.</b><br>
+<a href="https://github.com/Rishiidev/REPO_NAME">⭐ Star this repo</a>
+</div>
+```
+
+### Step 10 — Write `.github/workflows/package-skill.yml`
+
+Only write this file if CATEGORY is "claude-skill". Skip for all other categories.
+
 ```yaml
 name: Package skill
 on:
@@ -638,111 +969,11 @@ jobs:
           files: ${{ steps.find.outputs.skill_name }}.skill
 ```
 
-### 9. Write README.md
-
-Apply competitor_patterns from Agent B. Use before_state/after_state from Agent A.
-
-**MANDATORY RULE — SVG in README:**
-The social preview must be the FIRST element inside the `<div align="center">` block.
-Do not skip it. GitHub renders SVG relative paths. Format:
-```html
-<img src="assets/social-preview.svg" alt="REPO_NAME — value_prop" width="100%"/>
-```
-
-**MANDATORY RULE — First 160 chars after title block:**
-Must be the value prop sentence. GitHub search shows these chars in results.
-No code blocks or tables before this sentence.
-
-**MANDATORY RULE — Star CTA placement:**
-Place it BEFORE the feature tables (after Install section). People who stop reading
-mid-page still see it.
-
-```markdown
-# ⚡ REPO_NAME — [5-word value prop from Agent A]
-
-<div align="center">
-  <img src="assets/social-preview.svg" alt="REPO_NAME — [value_prop]" width="100%"/>
-  <br/><br/>
-
-**[Biggest single benefit from Agent A. Include the number.]**
-
-[![Stars](https://img.shields.io/github/stars/Rishiidev/REPO_NAME?style=for-the-badge&color=gold)](https://github.com/Rishiidev/REPO_NAME/stargazers)
-[![CI](https://github.com/Rishiidev/REPO_NAME/actions/workflows/validate.yml/badge.svg)](https://github.com/Rishiidev/REPO_NAME/actions)
-[![License](https://img.shields.io/github/license/Rishiidev/REPO_NAME?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)](https://github.com/Rishiidev/REPO_NAME/releases)
-
-*Works in Claude Code · Cowork · Claude.ai*
-
-</div>
-
-> [value_prop sentence — this is what GitHub search shows. Max 160 chars from here.]
-
 ---
 
-## The Problem
-[before_state from Agent A — 3-4 lines, concrete, familiar]
-
-## The Fix
-[after_state from Agent A — 1-3 lines + the main trigger command in a code block]
-
----
-
-## Install
-
-| Platform | Command |
-|----------|---------|
-| **Claude Code** | `/plugin install github:Rishiidev/REPO_NAME` |
-| **Cowork** | `/plugin install github:Rishiidev/REPO_NAME` |
-| **Claude.ai** | Download [`.skill` file](../../releases/latest) → import |
-
----
-
-<div align="center">
-<b>[Specific benefit claim from Agent A]. Star it — 2 seconds.</b><br>
-<a href="https://github.com/Rishiidev/REPO_NAME">⭐ Star on GitHub</a>
-</div>
-
----
-
-## Base vs Agentic
-
-| | `claude-github-launch` | **`REPO_NAME` (this)** |
-|-|----------------------|----------------------|
-| Time | ~15–20 min | **~4–6 min** |
-| Execution | Sequential (14 steps) | **Parallel (3 phases, 16 agents)** |
-| README quality | From project files | **+ competitor research** |
-| Name | "I'll suggest one" | **5 scored candidates** |
-| Description | 1 generated | **5 scored, you pick** |
-| Social preview | Generated | **Auto-embedded in README** |
-| GitHub Pages | ✗ | **✓ free site + homepage** |
-| Distribution | Ready-to-paste | **Text + 7-day timed calendar** |
-
-## How It Works
-
-[pipeline diagram showing the 3 parallel phases — use ASCII art or table format]
-
-## What It Builds
-[file tree showing full output structure]
-
-## What Never Gets Touched
-[table: protected items + why]
-
-## Trigger Phrases
-[table of all trigger phrases]
-
-## Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=Rishiidev/REPO_NAME&type=Date)](https://star-history.com/#Rishiidev/REPO_NAME&Date)
-
----
-
-MIT License
-
----
-
-<div align="center">
-<b>Found REPO_NAME useful? A ⭐ helps others find it.</b><br>
-<a href="https://github.com/Rishiidev/REPO_NAME">⭐ Star this repo</a>
-</div>
+**After step 10 completes — write checkpoint:**
+```bash
+echo "phase1_done:$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> <project-dir>/.launch-state
 ```
 
 ---
@@ -750,37 +981,46 @@ MIT License
 ## STEP: Git, Create Repo, Push
 
 ```bash
+# Ensure git initialized
 git -C <dir> rev-parse --git-dir 2>/dev/null || git -C <dir> init -b main
+
+# Review status — if .env or secrets appear, add to .gitignore first
 git -C <dir> status
-# Review output. If .env or secrets appear — add to .gitignore first.
+
+# Stage everything
 git -C <dir> add -A
+
 # Commit message:
 # No prior commits → "Initial release: REPO_NAME v1.0.0"
-# Has prior commits → "Add GitHub launch assets: parallel pipeline v1.0.0"
-# If Step 0 Q7 = keep co-author (default):
-git -C <dir> commit -m "<correct message>
+# Has prior commits → "Add GitHub launch assets: REPO_NAME v1.0.0"
+# Always include co-author line (default: keep)
+git -C <dir> commit -m "$(cat <<'EOF'
+Initial release: REPO_NAME v1.0.0
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-# If Step 0 Q7 = remove co-author:
-# git -C <dir> commit -m "<correct message>"
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+EOF
+)"
+
+# Create repo and push (if new repo)
 gh repo create REPO_NAME --public \
   --description "REPO_DESC" \
   --source <dir> \
   --remote origin \
   --push
-```
 
-If repo already existed from pre-flight:
-```bash
-git -C <dir> remote add origin https://github.com/Rishiidev/REPO_NAME.git 2>/dev/null || true
-git -C <dir> push -u origin main
+# If repo already existed from pre-flight:
+# git -C <dir> remote add origin https://github.com/Rishiidev/REPO_NAME.git 2>/dev/null || true
+# git -C <dir> push -u origin main
+
+# Checkpoint — write after successful push
+echo "git_done:$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> <dir>/.launch-state
 ```
 
 ---
 
 ## ═══════════════════════════════════════════════
 ## ═══ PARALLEL PHASE 2 ═══
-## Post-push: spawn all 4 config agents in ONE response.
+## Post-push: spawn all 4 agents in ONE response.
 ## ═══════════════════════════════════════════════
 
 ---
@@ -790,15 +1030,18 @@ git -C <dir> push -u origin main
 ```
 Set topics and description on: Rishiidev/REPO_NAME
 
-gh repo edit Rishiidev/REPO_NAME \
-  --add-topic <all 20 from TOPICS_LIST — one --add-topic per topic>
+Apply all 20 topics from TOPICS_LIST.
+Use [gh_safe] for each mutation (rate-limit guard):
+gh_safe repos/Rishiidev/REPO_NAME/topics --method PUT \
+  --field names[]="<topic1>" --field names[]="<topic2>" ... [all 20]
 
-gh repo edit Rishiidev/REPO_NAME --description "REPO_DESC"
+gh_safe repos/Rishiidev/REPO_NAME --method PATCH --field description="REPO_DESC"
 
-Verify:
-gh repo view Rishiidev/REPO_NAME --json topics,description
+Verify (plain gh api — read-only):
+gh api repos/Rishiidev/REPO_NAME --jq '{topics:.topics, desc:.description}'
 
-Report: "Topics set: N/20. Description: <value>"
+Report: "Topics set: N/20. Description: [value]"
+If fewer than 20: list which failed and retry once with gh_safe.
 ```
 
 ---
@@ -806,57 +1049,81 @@ Report: "Topics set: N/20. Description: <value>"
 ### Agent F — Discussions + Issues
 
 ```
-Enable on: Rishiidev/REPO_NAME
-Discussions value: <true/false from Step 0>
+Enable features on: Rishiidev/REPO_NAME
 
-gh api repos/Rishiidev/REPO_NAME --method PATCH --field has_discussions=DISCUSSIONS_VALUE
-gh api repos/Rishiidev/REPO_NAME --method PATCH --field has_issues=true
+Use [gh_safe] for both mutations:
+gh_safe repos/Rishiidev/REPO_NAME --method PATCH --field has_discussions=true
+gh_safe repos/Rishiidev/REPO_NAME --method PATCH --field has_issues=true
 
-Verify both settings. Report result.
+Verify (plain gh api — read-only):
+gh api repos/Rishiidev/REPO_NAME --jq '{discussions:.hasDiscussionsEnabled, issues:.hasIssuesEnabled}'
+
+Report result. If either fails, report the error verbatim.
 ```
 
 ---
 
 ### Agent G — Labels + Good First Issue
 
-Labels MUST be created before the issue. Run both sequentially inside this agent.
+Labels MUST be created before the issue. Run G1 then G2 sequentially inside this agent.
 
 ```
 Repo: Rishiidev/REPO_NAME
-Project type: <category from Agent A>
+Category: CATEGORY
 
-Step G1 — Create labels (errors fine, continue):
-gh label create "good first issue" --color "7057ff" --description "Good for newcomers" --repo Rishiidev/REPO_NAME 2>/dev/null || true
-gh label create "documentation" --color "0075ca" --description "Improvements to docs" --repo Rishiidev/REPO_NAME 2>/dev/null || true
-gh label create "enhancement" --color "a2eeef" --description "New feature" --repo Rishiidev/REPO_NAME 2>/dev/null || true
-gh label create "bug" --color "d73a4a" --description "Something isn't working" --repo Rishiidev/REPO_NAME 2>/dev/null || true
-gh label create "parallel-agent" --color "f0883e" --description "Agent parallelism improvements" --repo Rishiidev/REPO_NAME 2>/dev/null || true
+Step G1 — Create labels using [gh_safe] (errors ok, continue):
+gh_safe repos/Rishiidev/REPO_NAME/labels --method POST --field name="good first issue" --field color="7057ff" --field description="Good for newcomers" 2>/dev/null || true
+gh_safe repos/Rishiidev/REPO_NAME/labels --method POST --field name="documentation"   --field color="0075ca" --field description="Improvements to docs" 2>/dev/null || true
+gh_safe repos/Rishiidev/REPO_NAME/labels --method POST --field name="enhancement"      --field color="a2eeef" --field description="New feature" 2>/dev/null || true
+gh_safe repos/Rishiidev/REPO_NAME/labels --method POST --field name="bug"              --field color="d73a4a" --field description="Something isn't working" 2>/dev/null || true
+gh_safe repos/Rishiidev/REPO_NAME/labels --method POST --field name="question"         --field color="d876e3" --field description="Further information needed" 2>/dev/null || true
 
-Step G2 — Create tailored good first issue based on category:
-- claude-skill → "Add 3 trigger phrase variations with before/after output showing each activates correctly"
-- node-lib → "Add TypeScript types to the main export function"
-- cli-tool → "Add --dry-run flag showing what would run without executing"
-- python-tool → "Add a concrete example output block to the README usage section"
-- go-tool → "Add --verbose flag with structured log output"
-- Default → "Improve the README with a concrete before/after example for [main use case]"
+Step G2 — Create tailored good first issue based on CATEGORY:
 
-gh issue create \
-  --repo Rishiidev/REPO_NAME \
-  --title "<tailored title — achievable in under 1 hour>" \
-  --body "<tailored body: exact steps, which file to edit, what the result should look like>
+Category → Issue title and body:
 
-**Why this helps:** <one sentence>
+claude-skill:
+  Title: "Add 3 trigger phrase variations with before/after output"
+  Body: Exact steps to add a trigger phrase. Verify it activates correctly.
+
+node-lib:
+  Title: "Add TypeScript types to the main export"
+  Body: Which file to edit, what types are needed, how to verify.
+
+python-tool:
+  Title: "Add a concrete usage example to the README"
+  Body: Where to add it, what format, how to run it.
+
+go-tool:
+  Title: "Add --verbose flag with structured output"
+  Body: Which file, cobra/flag pattern to use, expected output format.
+
+rust-tool:
+  Title: "Add --quiet flag to suppress non-error output"
+  Body: Which crate pattern, where to add, how to test.
+
+cli-tool / web-app / docker-app:
+  Title: "Improve README with a concrete before/after example"
+  Body: Specific section to improve, format, what counts as good.
+
+All issues end with:
+"**Why this helps:** [one sentence benefit]
 
 **Steps:**
 1. Fork this repo
-2. <specific steps for THIS project>
-3. Open a PR with before/after output showing it works
+2. [specific steps for REPO_NAME]
+3. Open a PR with before/after showing it works
 
-No deep knowledge required." \
+No deep knowledge required — estimated time: under 1 hour."
+
+gh issue create \
+  --repo Rishiidev/REPO_NAME \
+  --title "<tailored title>" \
+  --body "<tailored body as above>" \
   --label "good first issue" \
   --label "documentation"
 
-Report: "Labels: 5 created. Issue #1: <title>"
+Report: "Labels: 5 created. Issue #1: [title]"
 ```
 
 ---
@@ -865,54 +1132,56 @@ Report: "Labels: 5 created. Issue #1: <title>"
 
 ```
 Create release for: Rishiidev/REPO_NAME
-.skill file path: <from Step 0, or "none">
+.skill file: SKILL_PATH (validated as existing in Step 1, or "none")
+Date: TODAY
 
-If .skill file path provided:
-gh release create v1.0.0 <skill-path> \
+Validate: if SKILL_PATH is not "none", verify file exists before attaching.
+
+gh release create v1.0.0 \
+  $([ "SKILL_PATH" != "none" ] && echo "SKILL_PATH") \
   --repo Rishiidev/REPO_NAME \
   --title "v1.0.0 — Initial Release" \
   --notes "## What's in v1.0.0
 
-### New
-- Parallel Phase 1: 4 agents simultaneously (research, topics, SVG, files)
-- Parallel Phase 2: post-push config simultaneous
-- Parallel Phase 3: distribution drafts simultaneous
-- SEO name scoring — 5 candidates, ranked
-- Competitor README mining from top 3 similar repos
-- Social preview embedded in README automatically
-- GitHub Pages landing page with click-to-copy install
-- 7-day distribution calendar with timed posting windows
+Released: TODAY
+
+### Added
+[Copy the bullet points from CHANGELOG.md v1.0.0 section — specific to this project]
 
 ### Install
 **Claude Code / Cowork:**
 \`\`\`
-/plugin install github:Rishiidev/REPO_NAME
+INSTALL_CMD
 \`\`\`
 **Claude.ai:** Download \`REPO_NAME.skill\` below → import.
 
 ### What's next
 See [open issues](https://github.com/Rishiidev/REPO_NAME/issues) — contributions welcome."
 
-If no .skill file: same command without the skill-path argument.
-
 Report: "Release v1.0.0 created. Assets: N"
+If no .skill file: "Release v1.0.0 created. No .skill file attached — add SKILL_PATH next time."
+```
+
+**After all Phase 2 agents complete — write checkpoint:**
+```bash
+echo "phase2_done:$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> <project-dir>/.launch-state
 ```
 
 ---
 
-## STEP: GitHub Pages (if user said yes in Step 0)
+## STEP: GitHub Pages (if PAGES_ENABLED=true)
 
 After PARALLEL PHASE 2 completes:
 
-**1. Write `docs/index.html`** using the template below (fill ALL placeholders):
+**1. Write `docs/index.html`** (fill ALL placeholders before writing):
 
-Placeholder rules before writing:
-- `REPO_NAME` → chosen repo name everywhere
-- `VALUE_PROP_FROM_AGENT_A` → full value prop sentence from Agent A
-- `HERO_HEADLINE` → short punchy version: for time savings use "[before] → [after]." (e.g. "20 min → 4."); for other value props extract the strongest 2–4 word impact phrase
-- `CATEGORY_LABEL` → from Agent A's category field: claude-skill → "Claude Code skill", node-lib → "Node.js library", cli-tool → "CLI tool", etc.
-- `MAIN_TRIGGER` → main_trigger from Agent A
-- No placeholder text left in the written file.
+- `REPO_NAME` → chosen repo name
+- `VALUE_PROP` → from Agent A, full value_prop sentence
+- `HERO_HEADLINE` → short punchy version: for time savings use "[before] → [after]." (e.g. "20 min → 4."); otherwise extract the strongest 2-4 word impact phrase
+- `CATEGORY_LABEL` → from CATEGORY: claude-skill → "Claude Code skill", node-lib → "Node.js library", cli-tool → "CLI tool", etc.
+- `MAIN_TRIGGER` → from Agent A main_trigger
+- `INSTALL_CMD` → full install command
+- No placeholder text in the written file.
 
 ```html
 <!DOCTYPE html>
@@ -920,9 +1189,9 @@ Placeholder rules before writing:
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="VALUE_PROP_FROM_AGENT_A">
+  <meta name="description" content="VALUE_PROP">
   <meta property="og:title" content="REPO_NAME">
-  <meta property="og:description" content="VALUE_PROP_FROM_AGENT_A">
+  <meta property="og:description" content="VALUE_PROP">
   <meta property="og:image" content="https://raw.githubusercontent.com/Rishiidev/REPO_NAME/main/assets/social-preview.svg">
   <title>REPO_NAME</title>
   <style>
@@ -941,9 +1210,9 @@ Placeholder rules before writing:
     .nav-star:hover{opacity:.88}
     .hero{max-width:900px;margin:0 auto;padding:80px 32px 56px}
     .hero-eyebrow{font-size:12px;color:var(--orange);text-transform:uppercase;letter-spacing:2px;margin-bottom:20px}
-    .hero-headline{font-size:clamp(56px,10vw,96px);font-weight:800;line-height:.95;letter-spacing:-2px;margin-bottom:24px}
+    .hero-headline{font-size:clamp(48px,9vw,88px);font-weight:800;line-height:.95;letter-spacing:-2px;margin-bottom:24px}
     .hero-headline .arrow{color:var(--orange)}
-    .hero-sub{font-size:18px;color:var(--muted);max-width:460px;margin-bottom:40px;line-height:1.65}
+    .hero-sub{font-size:18px;color:var(--muted);max-width:480px;margin-bottom:40px;line-height:1.65}
     .terminal{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;max-width:560px}
     .t-bar{background:var(--bg3);padding:10px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--subtle)}
     .dot{width:11px;height:11px;border-radius:50%}
@@ -960,20 +1229,6 @@ Placeholder rules before writing:
     .section-head{margin-bottom:28px}
     .section-head h2{font-size:24px;font-weight:700;margin-bottom:6px}
     .section-head p{font-size:15px;color:var(--muted)}
-    .timeline{display:flex;flex-direction:column;gap:10px;margin-bottom:32px}
-    .t-row{display:flex;align-items:center;gap:14px}
-    .t-label{font-size:12px;color:var(--muted);font-family:'Courier New',monospace;width:84px;text-align:right;flex-shrink:0}
-    .t-track{flex:1;height:32px;background:var(--bg2);border-radius:6px;position:relative;overflow:hidden;border:1px solid var(--subtle)}
-    .t-time{font-size:12px;font-family:'Courier New',monospace;width:52px;flex-shrink:0}
-    .seq-bar{position:absolute;inset:0;display:flex;gap:2px;padding:3px}
-    .seq-seg{flex:1;background:var(--bg3);border-radius:3px}
-    .par-bar{position:absolute;inset:4px;display:flex;gap:3px}
-    .par-seg{height:100%;border-radius:3px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-family:'Courier New',monospace;font-weight:600;white-space:nowrap}
-    .agents-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .agent-card{background:var(--bg2);border:1px solid var(--subtle);border-radius:8px;padding:13px 15px;display:flex;gap:10px}
-    .agent-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
-    .agent-name{font-size:13px;font-weight:600;margin-bottom:2px}
-    .agent-desc{font-size:12px;color:var(--muted)}
     .output-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .output-card{background:var(--bg2);border:1px solid var(--subtle);border-radius:10px;padding:22px}
     .output-title{font-size:15px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
@@ -981,11 +1236,6 @@ Placeholder rules before writing:
     .checklist{display:flex;flex-direction:column;gap:9px}
     .check-item{font-size:13px;color:var(--muted);display:flex;gap:8px;line-height:1.45}
     .check-icon{color:var(--green);flex-shrink:0}
-    table{width:100%;border-collapse:collapse;font-size:14px}
-    th{text-align:left;padding:10px 14px;background:var(--bg2);color:var(--faint);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--subtle)}
-    td{padding:11px 14px;border-bottom:1px solid var(--subtle)}
-    td strong{color:var(--orange)}
-    tr:last-child td{border-bottom:none}
     footer{border-top:1px solid var(--subtle)}
     .footer-inner{max-width:900px;margin:0 auto;padding:32px;display:flex;align-items:center;justify-content:space-between}
     .footer-left{font-size:13px;color:var(--faint)}
@@ -996,7 +1246,7 @@ Placeholder rules before writing:
     .sticky-cta{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:14px 20px;align-items:center;justify-content:space-between;z-index:50}
     .sticky-cta-text{font-size:14px;color:var(--muted)}
     .sticky-cta-btn{background:var(--orange);color:#0d1117;padding:10px 20px;border-radius:7px;font-size:14px;font-weight:600;white-space:nowrap}
-    @media(max-width:720px){nav{padding:0 20px}.nav-links{display:none}.hero{padding:48px 20px 40px}.section{padding-left:20px;padding-right:20px}.agents-grid,.output-grid{grid-template-columns:1fr}.footer-inner{padding:24px 20px;flex-direction:column;gap:16px;text-align:center}.sticky-cta{display:flex}body{padding-bottom:72px}}
+    @media(max-width:720px){nav{padding:0 20px}.nav-links{display:none}.hero{padding:48px 20px 40px}.section{padding-left:20px;padding-right:20px}.output-grid{grid-template-columns:1fr}.footer-inner{padding:24px 20px;flex-direction:column;gap:16px;text-align:center}.sticky-cta{display:flex}body{padding-bottom:72px}}
   </style>
 </head>
 <body>
@@ -1004,7 +1254,7 @@ Placeholder rules before writing:
   <div class="nav-brand"><div class="nav-dot"></div>REPO_NAME</div>
   <div class="nav-links">
     <a href="#install">install</a>
-    <a href="#pipeline">how it works</a>
+    <a href="#what-you-get">what you get</a>
     <a href="https://github.com/Rishiidev/REPO_NAME#readme">docs</a>
     <a href="https://github.com/Rishiidev/REPO_NAME">GitHub</a>
   </div>
@@ -1013,14 +1263,14 @@ Placeholder rules before writing:
 <section class="hero" id="install">
   <div class="hero-eyebrow">CATEGORY_LABEL</div>
   <div class="hero-headline">HERO_HEADLINE</div>
-  <p class="hero-sub">VALUE_PROP_FROM_AGENT_A</p>
+  <p class="hero-sub">VALUE_PROP</p>
   <div class="terminal">
     <div class="t-bar">
       <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
       <div class="t-title">claude — bash</div>
     </div>
     <div class="t-body">
-      <div class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">/plugin install github:Rishiidev/REPO_NAME</span></div>
+      <div class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">INSTALL_CMD</span></div>
       <div class="t-line t-out">✓ Installed. Type "MAIN_TRIGGER" to start.</div>
       <div class="t-actions">
         <button class="t-copy" id="copy-btn" onclick="copyInstall()">
@@ -1032,8 +1282,8 @@ Placeholder rules before writing:
     </div>
   </div>
 </section>
-<section class="section" id="pipeline">
-  <div class="section-head"><h2>What gets built</h2><p>VALUE_PROP_FROM_AGENT_A</p></div>
+<section class="section" id="what-you-get">
+  <div class="section-head"><h2>What you get</h2><p>VALUE_PROP</p></div>
   <div class="output-grid">
     <div class="output-card">
       <div class="output-title"><div class="output-dot" style="background:var(--orange)"></div>Files created</div>
@@ -1050,11 +1300,11 @@ Placeholder rules before writing:
       <div class="output-title"><div class="output-dot" style="background:var(--blue)"></div>Distribution ready</div>
       <div class="checklist">
         <div class="check-item"><span class="check-icon">✓</span>LinkedIn post — Day 0</div>
-        <div class="check-item"><span class="check-icon">✓</span>Reddit post — Day 1</div>
+        <div class="check-item"><span class="check-icon">✓</span>Reddit post (r/ClaudeAI) — Day 1</div>
         <div class="check-item"><span class="check-icon">✓</span>X/Twitter thread — Day 2</div>
         <div class="check-item"><span class="check-icon">✓</span>DEV.to article — Day 3</div>
-        <div class="check-item"><span class="check-icon">✓</span>Product Hunt copy — Day 4</div>
-        <div class="check-item"><span class="check-icon">✓</span>Show HN + awesome-list PR — Day 5</div>
+        <div class="check-item"><span class="check-icon">✓</span>Product Hunt copy — Day 4 (after 5★)</div>
+        <div class="check-item"><span class="check-icon">✓</span>Show HN + awesome-list PR — Day 5 (after 10★)</div>
       </div>
     </div>
   </div>
@@ -1070,7 +1320,7 @@ Placeholder rules before writing:
   <a href="https://github.com/Rishiidev/REPO_NAME" class="sticky-cta-btn">⭐ Star</a>
 </div>
 <script>
-  function copyInstall(){const cmd='/plugin install github:Rishiidev/REPO_NAME';const btn=document.getElementById('copy-btn');navigator.clipboard.writeText(cmd).then(()=>{btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Copied';btn.style.color='#3fb950';btn.style.borderColor='#3fb950';setTimeout(()=>{btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';btn.style.color='';btn.style.borderColor='';},2000);}).catch(()=>{btn.textContent='Copy failed';});}
+  function copyInstall(){const cmd='INSTALL_CMD';const btn=document.getElementById('copy-btn');navigator.clipboard.writeText(cmd).then(()=>{btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Copied';btn.style.color='#3fb950';btn.style.borderColor='#3fb950';setTimeout(()=>{btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';btn.style.color='';btn.style.borderColor='';},2000);}).catch(()=>{btn.textContent='Copy failed';});}
   const hero=document.querySelector('.hero'),stickyCta=document.getElementById('sticky-cta');
   if(hero&&stickyCta){const obs=new IntersectionObserver(([e])=>{stickyCta.style.display=e.isIntersecting?'none':'flex';},{threshold:0});obs.observe(hero);}
 </script>
@@ -1078,110 +1328,114 @@ Placeholder rules before writing:
 </html>
 ```
 
-No placeholder text left in file. Fill REPO_NAME, VALUE_PROP_FROM_AGENT_A, HERO_HEADLINE, CATEGORY_LABEL, MAIN_TRIGGER before writing.
+No placeholder text in the written file. All 6 variables (REPO_NAME, VALUE_PROP, HERO_HEADLINE, CATEGORY_LABEL, MAIN_TRIGGER, INSTALL_CMD) must be substituted before writing.
 
 **2. Commit and push:**
 ```bash
 git -C <dir> add docs/
-git -C <dir> commit -m "Add GitHub Pages site"
+git -C <dir> commit -m "Add GitHub Pages landing site"
 git -C <dir> push
 ```
 
-**3. Enable Pages:**
+**3. Enable Pages** (use `gh_safe` — POST mutation):
 ```bash
-gh api repos/Rishiidev/REPO_NAME/pages \
+gh_safe repos/Rishiidev/REPO_NAME/pages \
   --method POST \
-  --field source='{"branch":"main","path":"/docs"}'
+  --field source='{"branch":"main","path":"/docs"}' 2>/dev/null || echo "Pages already enabled"
 ```
 
-If Pages already enabled, skip without error.
-
-**4. Set repo homepage:**
+**4. Set repo homepage** (use `gh_safe` — PATCH mutation):
 ```bash
-gh repo edit Rishiidev/REPO_NAME --homepage "https://Rishiidev.github.io/REPO_NAME"
+gh_safe repos/Rishiidev/REPO_NAME --method PATCH \
+  --field homepage="https://Rishiidev.github.io/REPO_NAME"
 ```
 
-**5. If Step 0 Q8 provided a custom domain (CUSTOM_DOMAIN):**
+**5. Verify Pages deployment (poll up to 3 minutes):**
+```bash
+for i in $(seq 1 18); do
+  STATUS=$(gh api repos/Rishiidev/REPO_NAME/pages --jq '.status' 2>/dev/null)
+  echo "Pages status: $STATUS (check $i/18)"
+  if [ "$STATUS" = "built" ]; then
+    echo "✓ Pages live at https://Rishiidev.github.io/REPO_NAME"
+    echo "pages_done:$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> <dir>/.launch-state
+    break
+  fi
+  sleep 10
+done
+```
+If status never reaches "built" after 3 minutes: tell the user
+"Pages is deploying — it should be live at https://Rishiidev.github.io/REPO_NAME
+within 2-5 minutes. Check github.com/Rishiidev/REPO_NAME/settings/pages for status."
+
+**6. Custom domain (if CUSTOM_DOMAIN provided):**
 ```bash
 echo "CUSTOM_DOMAIN" > <dir>/docs/CNAME
 git -C <dir> add docs/CNAME
-git -C <dir> commit -m "Add custom domain CNAME"
+git -C <dir> commit -m "Add custom domain: CUSTOM_DOMAIN"
 git -C <dir> push
 gh repo edit Rishiidev/REPO_NAME --homepage "https://CUSTOM_DOMAIN"
 ```
-Tell user:
-"DNS setup — add ONE of these records with your registrar:
-  · Subdomain (e.g. tools.yourdomain.com): CNAME record → Rishiidev.github.io
-  · Apex domain (yourdomain.com): 4 A records → 185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153
-GitHub will provision HTTPS automatically (~10 min after DNS propagates)."
-
-**6. Tell user:**
-"GitHub Pages will be live at https://Rishiidev.github.io/REPO_NAME in ~2 minutes."
-(Use CUSTOM_DOMAIN URL instead if Q8 was provided.)
+Tell user DNS setup:
+```
+DNS — add ONE of these with your registrar:
+  Subdomain (e.g. tools.yourdomain.com): CNAME → Rishiidev.github.io
+  Apex domain (yourdomain.com): 4 A records →
+    185.199.108.153  185.199.109.153  185.199.110.153  185.199.111.153
+GitHub provisions HTTPS automatically (~10 min after DNS propagates).
+```
 
 ---
 
-## STEP: Discussions Welcome Post (if Discussions enabled in Step 0)
-
-After GitHub Pages is set up, post a welcome thread to seed the community:
+## STEP: Discussions Welcome Post (if Discussions enabled)
 
 ```bash
-# Get the repo node ID needed for GraphQL
 REPO_NODE_ID=$(gh api graphql -f query='
   query { repository(owner: "Rishiidev", name: "REPO_NAME") { id } }
 ' --jq '.data.repository.id')
 
-# Get the Announcements category ID (or General if Announcements not found)
 CATEGORY_ID=$(gh api graphql -f query='
   query {
     repository(owner: "Rishiidev", name: "REPO_NAME") {
-      discussionCategories(first: 10) {
-        nodes { id name }
-      }
+      discussionCategories(first: 10) { nodes { id name } }
     }
   }
-' --jq '.data.repository.discussionCategories.nodes[] | select(.name == "Announcements") | .id // empty' | head -1)
+' --jq '.data.repository.discussionCategories.nodes[] | select(.name == "Announcements") | .id' | head -1)
 
-# Fallback to General if no Announcements category
-if [ -z "$CATEGORY_ID" ]; then
-  CATEGORY_ID=$(gh api graphql -f query='
-    query {
-      repository(owner: "Rishiidev", name: "REPO_NAME") {
-        discussionCategories(first: 10) {
-          nodes { id name }
-        }
-      }
+# Fallback to General
+[ -z "$CATEGORY_ID" ] && CATEGORY_ID=$(gh api graphql -f query='
+  query {
+    repository(owner: "Rishiidev", name: "REPO_NAME") {
+      discussionCategories(first: 10) { nodes { id name } }
     }
-  ' --jq '.data.repository.discussionCategories.nodes[] | select(.name == "General") | .id' | head -1)
-fi
+  }
+' --jq '.data.repository.discussionCategories.nodes[] | select(.name == "General") | .id' | head -1)
 
-gh api graphql -f query='
+gh_safe graphql -f query='
   mutation($repoId: ID!, $catId: ID!, $title: String!, $body: String!) {
     createDiscussion(input: {
       repositoryId: $repoId
       categoryId: $catId
       title: $title
       body: $body
-    }) {
-      discussion { url }
-    }
+    }) { discussion { url } }
   }
 ' -f repoId="$REPO_NODE_ID" \
   -f catId="$CATEGORY_ID" \
-  -f title="Welcome to REPO_NAME — share what you built" \
+  -f title="Welcome to REPO_NAME — introduce yourself" \
   -f body="Welcome! 👋
 
-This is the place to share launches you completed with this skill, questions, edge cases you hit, or improvements you want to see.
+This is the place to share what you built, ask questions, and suggest improvements.
 
-**To kick things off:**
-- What project did you launch?
-- How long did the full pipeline take?
-- Which parallel phase helped most?
+To kick things off:
+- What are you using REPO_NAME for?
+- What's your stack?
+- What would make it 10x better?
 
-I'll reply to every post here."
+I reply to every post."
 ```
 
-If the GraphQL call fails (Discussions not yet propagated), skip and continue. Do not block on this step.
+If GraphQL fails → print manual fallback:
+"Post a welcome thread manually at: https://github.com/Rishiidev/REPO_NAME/discussions/new"
 
 ---
 
@@ -1193,7 +1447,8 @@ Run all checks. Fix failures before reporting success.
 gh repo view Rishiidev/REPO_NAME \
   --json name,description,topics,homepageUrl,hasDiscussionsEnabled,hasIssuesEnabled
 
-gh repo view Rishiidev/REPO_NAME --json topics | jq '.topics | length'
+TOPIC_COUNT=$(gh repo view Rishiidev/REPO_NAME --json topics | jq '.topics | length')
+echo "Topics: $TOPIC_COUNT/20"
 
 gh release view v1.0.0 --repo Rishiidev/REPO_NAME --json assets,tagName,name
 
@@ -1205,63 +1460,56 @@ gh workflow list --repo Rishiidev/REPO_NAME
 ```
 
 Required passing state:
-- topics count ≥ 15 (not 0)
-- description matches REPO_DESC
-- release v1.0.0 exists
-- issue #1 has "good first issue" label
-- validate.yml workflow exists
+- topics count ≥ 15 (not 0) → if 0, Agent E likely failed: re-run topics command manually
+- description matches REPO_DESC → if wrong, `gh repo edit --description "REPO_DESC"`
+- release v1.0.0 exists → if missing, re-run Agent H command
+- issue #1 has "good first issue" label → if missing, re-run Agent G step G2
+- validate.yml workflow exists → if missing, write the file from Synthesis step 6
+
+Report each as ✓ PASS or ✗ FAIL with the fix command.
 
 ---
 
 ## STEP: Demo Storyboard
 
-Generate a 30-second terminal demo script so the user can record a GIF later.
-Write to: `.github/record-demo.sh`
+Write `.github/record-demo.sh` (fill REPO_NAME, MAIN_TRIGGER):
 
 ```bash
 #!/usr/bin/env bash
 # record-demo.sh — 30-second terminal demo storyboard for REPO_NAME
 #
-# Tool: ttyrec / asciinema / Terminalizer (pick whichever is installed)
 # Recommended: asciinema rec demo.cast --cols 100 --rows 32 --idle-time-limit 2
 #
-# Scene 1 (0–5s): User types the trigger phrase
-#   Type: agentic github launch
-#   Pause 1s — show Claude processing
+# Scene 1 (0–5s): Type the trigger phrase
+#   $ MAIN_TRIGGER
+#   Pause 1s — show processing
 #
-# Scene 2 (5–12s): Name scoring table appears
-#   Show the 5-candidate table with scores
-#   Highlight the recommended row
-#   User picks the recommended name
+# Scene 2 (5–15s): Show the primary output
+#   [Show the most visually compelling output of REPO_NAME]
+#   [Derive from CATEGORY: for claude-skill show agent output, for cli-tool show command output, etc.]
 #
-# Scene 3 (12–22s): Phase 1 starts — show 4 Agent calls firing simultaneously
-#   Show: "Spawning Agent A, B, C, D simultaneously..."
-#   Show agent terminal output trickling in from 4 boxes in parallel
+# Scene 3 (15–25s): Show the result / before→after
+#   [Show the concrete improvement — time saved, output quality, etc.]
 #
-# Scene 4 (22–28s): Final report header appears
-#   Show: ✓ Repo, ✓ Website, ✓ Topics, ✓ Release, ✓ Pages
-#
-# Scene 5 (28–30s): Install command block
-#   Show: /plugin install github:Rishiidev/REPO_NAME
+# Scene 4 (25–30s): Install command
+#   $ INSTALL_CMD
 #
 # Recording tips:
-#   - Set font size 16, window 100x32
-#   - Use a dark terminal (matches #0d1117 GitHub theme)
-#   - Export: asciinema cat demo.cast | svg-term --out demo.svg
-#   - Convert GIF: agg demo.cast demo.gif --cols 100 --rows 32
+#   - Font size 16, window 100x32, dark terminal (#0d1117)
+#   - Export SVG: asciinema cat demo.cast | svg-term --out demo.svg
+#   - Export GIF: agg demo.cast assets/demo.gif --cols 100 --rows 32
 
-echo "Storyboard written. To record:"
+echo "Storyboard ready. Record with:"
 echo "  asciinema rec demo.cast --cols 100 --rows 32 --idle-time-limit 2"
-echo "  Then: agg demo.cast assets/demo.gif"
+echo "  agg demo.cast assets/demo.gif"
 ```
-
-Write this file (fill REPO_NAME). Confirm written.
 
 ---
 
 ## ═══════════════════════════════════════════════
 ## ═══ PARALLEL PHASE 3 ═══
-## Distribution: spawn all 8 content agents in ONE response.
+## Distribution: spawn all 8 agents in ONE response.
+## [LITE MODE: skip this entire section]
 ## ═══════════════════════════════════════════════
 
 ---
@@ -1269,24 +1517,25 @@ Write this file (fill REPO_NAME). Confirm written.
 ### Agent I — Reddit Post (r/ClaudeAI)
 
 ```
-Write a Reddit post for r/ClaudeAI announcing: Rishiidev/REPO_NAME
-Value prop: VALUE_PROP_FROM_AGENT_A
-Before state: BEFORE_STATE_FROM_AGENT_A
-After state: AFTER_STATE_FROM_AGENT_A
-Install: /plugin install github:Rishiidev/REPO_NAME
-GitHub: https://github.com/Rishiidev/REPO_NAME
+Write a Reddit post for r/ClaudeAI.
+Repo: Rishiidev/REPO_NAME
+GitHub: https://github.com/Rishiidev/REPO_NAME?utm_source=reddit
+Value prop: VALUE_PROP
+Before state: BEFORE_STATE
+After state: AFTER_STATE
+Install: INSTALL_CMD
 
-TITLE: (≤120 chars, specific, no clickbait, mention the skill name)
+TITLE: (≤120 chars — specific, no clickbait, include the repo name)
 BODY: (400–600 words)
-- Opening: mirror the before_state, make it feel familiar
-- What it does: one paragraph, conversational, not marketing
-- Before block (code or text showing the old way)
-- After block (showing the new result)
-- Install command
-- "Feedback welcome, especially edge cases" ending
+  Para 1: Mirror BEFORE_STATE — make it feel familiar to the reader
+  Para 2: What REPO_NAME does — conversational, not marketing copy
+  Before block: old workflow in code or plain text
+  After block: new result
+  Install command
+  "Feedback welcome — especially edge cases I haven't hit yet" ending
 
-Tone: developer sharing something they built. No superlatives. Concrete.
-Return the full post, ready to paste.
+Tone: developer sharing something they built. No superlatives. Concrete numbers only.
+Return ready-to-paste post.
 ```
 
 ---
@@ -1294,17 +1543,16 @@ Return the full post, ready to paste.
 ### Agent J — X/Twitter Thread
 
 ```
-Write a 4-tweet thread for X/Twitter about: Rishiidev/REPO_NAME
-Value prop: VALUE_PROP_FROM_AGENT_A
-GitHub: https://github.com/Rishiidev/REPO_NAME
+Write a 4-tweet thread about: Rishiidev/REPO_NAME
+GitHub: https://github.com/Rishiidev/REPO_NAME?utm_source=twitter
+Value prop: VALUE_PROP
 
-Tweet 1 (hook): [problem statement] + number + "how ↓"
-Tweet 2 (before/after): concrete, specific, shows the gap
-Tweet 3 (how): parallel agents concept, specific command or output
-Tweet 4 (links): GitHub + install + ask for RT if it saves them X
+1/4 (hook): [problem statement] + the number from VALUE_PROP + "how ↓"
+2/4 (before/after): concrete gap — specific, shows the old vs new
+3/4 (how it works): what happens under the hood, specific command or output snippet
+4/4 (links): GitHub + INSTALL_CMD + "RT if this saves you [specific time/effort]"
 
-Each tweet ≤280 chars. Number them 1/4, 2/4, etc.
-Return ready-to-paste thread.
+Each ≤280 chars. Return numbered, ready-to-paste thread.
 ```
 
 ---
@@ -1313,17 +1561,16 @@ Return ready-to-paste thread.
 
 ```
 Write a Show HN submission for: Rishiidev/REPO_NAME
-Value prop: VALUE_PROP_FROM_AGENT_A
-GitHub: https://github.com/Rishiidev/REPO_NAME
+GitHub: https://github.com/Rishiidev/REPO_NAME?utm_source=hackernews
+Value prop: VALUE_PROP
 
 TITLE: Show HN: REPO_NAME – [value prop with number, ≤80 chars]
 BODY: (~200 words, 3 paragraphs)
-  P1: Problem and why I built it
-  P2: How parallel agents work technically (brief, honest)
-  P3: Link, install command, what feedback I'm looking for
+  P1: Problem and why I built it — honest, not marketing
+  P2: Technical approach — how it works, what's interesting about it
+  P3: GitHub link, INSTALL_CMD, specific feedback request
 
-Audience: technical, skeptical of marketing. Direct. Humble.
-No superlatives ("revolutionary", "game-changing"). Let the use case speak.
+Audience: technical, skeptical. No superlatives. Numbers are fine. Let the use case speak.
 Return ready-to-post submission.
 ```
 
@@ -1332,22 +1579,22 @@ Return ready-to-post submission.
 ### Agent L — Awesome-List PR Draft
 
 ```
-Find the best awesome-list target for: REPO_NAME
+Find the best awesome-list target for: REPO_NAME (category: CATEGORY)
 Run:
 gh search repos "awesome-claude" --sort stars --limit 5 --json fullName,stargazersCount,description
 gh search repos "awesome-llm" --sort stars --limit 5 --json fullName,stargazersCount,description
 gh search repos "awesome-claude-code" --sort stars --limit 3 --json fullName,stargazersCount,description
 
-Pick the best target (highest stars + most relevant to a Claude Code skill).
-Fetch its README first 50 lines to match the description style:
+Pick the best target (highest stars + most relevant to CATEGORY).
+Fetch its README first 50 lines to match description style:
 gh api repos/<owner>/<repo>/readme --jq '.content' | base64 -d | head -50
 
 Write:
-1. The exact markdown line to add: - [REPO_NAME](url) — description matching list style
+1. The exact markdown line: - [REPO_NAME](https://github.com/Rishiidev/REPO_NAME) — description matching list style
 2. PR title: "Add REPO_NAME"
-3. PR body (3 sentences: what it does, category it fits, why it belongs)
+3. PR body (3 sentences: what it does, category, why it belongs here)
 
-Return: target repo, the markdown line, and the full PR draft.
+Return: target repo URL, the markdown line, full PR draft.
 ```
 
 ---
@@ -1355,21 +1602,20 @@ Return: target repo, the markdown line, and the full PR draft.
 ### Agent M — LinkedIn Post
 
 ```
-Write a LinkedIn post announcing: Rishiidev/REPO_NAME
-Value prop: VALUE_PROP_FROM_AGENT_A
-Before state: BEFORE_STATE_FROM_AGENT_A
-GitHub: https://github.com/Rishiidev/REPO_NAME
-Install: /plugin install github:Rishiidev/REPO_NAME
+Write a LinkedIn post for: Rishiidev/REPO_NAME
+GitHub: https://github.com/Rishiidev/REPO_NAME?utm_source=linkedin
+Value prop: VALUE_PROP
+Before state: BEFORE_STATE
 
 FORMAT:
-- Hook line (1 sentence, ends with a number or surprising contrast)
-- 2-line gap
-- 3–4 bullet points explaining the technical approach
-- 2-line gap
-- CTA: GitHub link + install command
-- 3–5 hashtags: #ClaudeAI #AITools #DeveloperTools + 1–2 specific to the stack
+- Hook (1 sentence ending with a number or contrast — no "I'm excited to announce")
+- Blank line
+- 3-4 bullets on the technical approach
+- Blank line
+- GitHub link + INSTALL_CMD
+- 3-5 hashtags: #ClaudeAI #AITools #DeveloperTools + 1-2 stack-specific
 
-Length: 150–250 words. Tone: technical professional. No "I am thrilled" or "excited to announce".
+150–250 words. Technical professional tone. No corporate speak.
 Return ready-to-paste post.
 ```
 
@@ -1378,25 +1624,24 @@ Return ready-to-paste post.
 ### Agent N — Product Hunt Launch Copy
 
 ```
-Write Product Hunt launch assets for: Rishiidev/REPO_NAME
-Value prop: VALUE_PROP_FROM_AGENT_A
-Tagline: (derive from value_prop — ≤60 chars)
-GitHub: https://github.com/Rishiidev/REPO_NAME
+Write Product Hunt assets for: Rishiidev/REPO_NAME
+GitHub: https://github.com/Rishiidev/REPO_NAME?utm_source=producthunt
+Value prop: VALUE_PROP
 
 Provide:
-1. TAGLINE (≤60 chars): Compelling one-liner for the PH listing
-2. DESCRIPTION (260 chars max): What it does + who it's for + one concrete benefit
+1. TAGLINE (≤60 chars): one-liner for the PH listing
+2. DESCRIPTION (≤260 chars): what it does + who it's for + one concrete benefit
 3. FIRST COMMENT (200–300 words):
-   - Why you built it (honest, personal reason)
-   - What makes the parallel approach different (technical insight)
-   - One surprising result or edge case from building it
-   - Ask for specific feedback: "What step would you add to Phase 3?"
+   - Why you built it (honest reason — not marketing)
+   - What makes the approach technically interesting
+   - One surprising result from building or testing it
+   - Specific feedback request: what would YOU add next?
 4. GALLERY SLIDE CAPTIONS (3 slides):
-   - Slide 1: The problem (before state)
-   - Slide 2: The pipeline diagram (3 parallel phases)
-   - Slide 3: Final report / install command
+   Slide 1: The problem (BEFORE_STATE condensed)
+   Slide 2: How it works (architecture or pipeline)
+   Slide 3: Install command + what you get
 
-Return all 4 items clearly labeled.
+Return all 4 items labeled.
 ```
 
 ---
@@ -1404,30 +1649,25 @@ Return all 4 items clearly labeled.
 ### Agent O — Newsletter Pitch Emails
 
 ```
-Write outreach emails to 3 AI newsletters for: Rishiidev/REPO_NAME
-Value prop: VALUE_PROP_FROM_AGENT_A
+Write 3 tailored pitches for: Rishiidev/REPO_NAME
 GitHub: https://github.com/Rishiidev/REPO_NAME
-
-Write separate, tailored pitches for:
+Value prop: VALUE_PROP
 
 1. TLDR AI (tldr.tech/ai)
-   Subject: (≤60 chars, no exclamation marks)
-   Format: 1 paragraph, 60–80 words
-   Style: factual, data-driven, headline-friendly
+   Subject: ≤60 chars, no punctuation theatrics
+   Body: 60–80 words, factual, headline-friendly, data-driven
 
 2. The Rundown AI (therundown.ai)
-   Subject: (≤60 chars)
-   Format: 2 short paragraphs, ~100 words total
-   Style: slightly more conversational, focus on the "what's new" angle
+   Subject: ≤60 chars
+   Body: 2 short paragraphs, ~100 words, "what's new" angle
 
 3. Ben's Bites (bensbites.co)
-   Subject: (≤60 chars)
-   Format: 1 paragraph, 60–80 words, builder-focused angle
-   Style: casual, "someone just shipped..." energy
+   Subject: ≤60 chars
+   Body: 60–80 words, casual builder energy, "someone just shipped..." tone
 
-Each pitch must include the GitHub URL and install command.
-No fluff. Editors get 100 pitches a day — be concrete and brief.
-Return all 3 emails clearly labeled.
+Each pitch includes the GitHub URL and INSTALL_CMD.
+Do not send the same copy to all three. Tailor each to the newsletter's voice.
+Return all 3 labeled.
 ```
 
 ---
@@ -1435,119 +1675,124 @@ Return all 3 emails clearly labeled.
 ### Agent P — DEV.to Article Draft
 
 ```
-Write a technical article for DEV.to about: Rishiidev/REPO_NAME
-Value prop: VALUE_PROP_FROM_AGENT_A
-GitHub: https://github.com/Rishiidev/REPO_NAME
-Install: /plugin install github:Rishiidev/REPO_NAME
+Write a DEV.to article about: Rishiidev/REPO_NAME
+GitHub: https://github.com/Rishiidev/REPO_NAME?utm_source=devto
+Value prop: VALUE_PROP
+Install: INSTALL_CMD
 
-TITLE: (≤80 chars, include the number from value_prop)
+TITLE: ≤80 chars, include the number from VALUE_PROP
 TAGS: 4 tags (e.g. claudeai, opensource, devtools, productivity)
-COVER IMAGE ALT: (descriptive alt text for the social-preview.svg)
+COVER_ALT: descriptive alt text for the social-preview.svg
 
 ARTICLE (700–900 words):
 
 ## The Problem
-[before_state — concrete, familiar, 2-3 sentences]
+[BEFORE_STATE — concrete, 2-3 sentences]
 
-## The Approach: Parallel Agents
-[Explain the 3-phase parallel architecture. Include the pipeline diagram as a code block.]
+## The Approach
+[Technical explanation of how REPO_NAME works. Be honest about trade-offs.]
 
-## What Gets Built
-[File tree showing the output. Each file with a one-line description.]
+## What You Get
+[File tree or feature list — specific to this project, not a generic list]
 
-## The Time Difference
-[Specific comparison: 4–6 min vs 15–20 min. Why parallel beats sequential here.]
-
-## Install and Try It
+## Try It
 \`\`\`
-/plugin install github:Rishiidev/REPO_NAME
+INSTALL_CMD
 \`\`\`
-Then type: "agentic github launch"
+Then: MAIN_TRIGGER
 
 ## What's Next
-[1–2 improvements on the roadmap or in open issues]
+[1-2 improvements or open issues — honest about limitations]
 
-End with a call to star the repo and open issues for feedback.
-Return the full article in Markdown, ready to paste into DEV.to.
+End with: star the repo link + open an issue for feedback.
+Return full article in Markdown, ready to paste into DEV.to.
+```
+
+---
+
+**After all Phase 3 agents complete — write checkpoint:**
+```bash
+echo "phase3_done:$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> <project-dir>/.launch-state
 ```
 
 ---
 
 ## STEP: 7-Day Launch Calendar
 
-After all 8 distribution agents complete, generate this calendar using the content
-from Agents I–P. Convert all days to absolute dates from today (2026-06-18).
+After all 8 Phase 3 agents complete, build this calendar using TODAY as the base date.
+Compute absolute dates: Day 0 = TODAY, Day 1 = tomorrow, etc.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📅  7-DAY LAUNCH CALENDAR — REPO_NAME
+    Starting: TODAY (Day 0)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Day 0 — Today, 2026-06-18
-  □ Pin repo on your GitHub profile (github.com → Customize profile)
-  □ Add repo URL to your GitHub bio
+Day 0 — TODAY
+  □ Pin repo on GitHub profile (github.com → Customize profile)
+  □ Add repo URL to GitHub bio
   □ Star your own repo (seeds the star history chart)
-  □ Post LinkedIn [Agent M post below ↓] (9–10am ET)
-  □ Send newsletter pitches to TLDR AI, The Rundown AI, Ben's Bites [Agent O below ↓]
+  □ Post LinkedIn [Agent M post below ↓] (9–10am local)
+  □ Send newsletter pitches [Agent O below ↓]
 
-Day 1 — 2026-06-19 (Post 9–11am ET for best r/ClaudeAI visibility)
-  □ Post to r/ClaudeAI [Reddit post from Agent I below ↓]
+Day 1 — [TODAY + 1 day] (Post 9–11am ET)
+  □ Post r/ClaudeAI [Reddit post from Agent I below ↓]
   □ Reply to every comment within 2 hours
 
-Day 2 — 2026-06-20 (Post 8–10am or 5–6pm ET)
-  □ Post X/Twitter thread [thread from Agent J below ↓]
+Day 2 — [TODAY + 2 days] (Post 8–10am or 5–6pm ET)
+  □ Post X/Twitter thread [Agent J below ↓]
   □ @AnthropicAI mention if on-topic
 
-Day 3 — 2026-06-21
-  □ Open awesome-list PR [Agent L target + PR from below ↓]
-  □ Post in any Claude/dev Discord you're in
-  □ Publish DEV.to article [Agent P draft below ↓]
+Day 3 — [TODAY + 3 days]
+  □ Open awesome-list PR [Agent L target + PR below ↓]
+  □ Post in Claude/AI developer Discord communities
+  □ Publish DEV.to article [Agent P below ↓]
 
-Day 4 — 2026-06-22
-  □ IF ≥5 stars: submit to Product Hunt [Agent N copy below ↓]
-     Best posting window: 12:01am PT (midnight Pacific)
-     PH URL: producthunt.com/posts/new
+Day 4 — [TODAY + 4 days]
+  □ IF ≥5 stars: submit to Product Hunt [Agent N below ↓]
+     Best window: 12:01am PT (Pacific midnight)
+     producthunt.com/posts/new
 
-Day 5 — 2026-06-23
-  □ IF ≥10 stars: post Show HN [Agent K post below ↓]
-     HN converts better with social proof — wait for stars
-  □ Cross-post to r/artificial with different angle
+Day 5 — [TODAY + 5 days]
+  □ IF ≥10 stars: post Show HN [Agent K below ↓]
+     Wait for social proof — HN with 0 stars is invisible
+  □ Cross-post to r/artificial with a different angle
 
-Day 7 — 2026-06-25
-  □ Search "claude github launch" on GitHub — are you ranking?
-  □ If <5 stars: try the next-best description candidate
-  □ If ≥20 stars: follow up with any newsletter replies
+Day 7 — [TODAY + 7 days]
+  □ Search "REPO_NAME" on GitHub — are you ranking?
+  □ If <5 stars: try the next description candidate
+  □ If ≥20 stars: follow up on any newsletter replies
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 LINKEDIN POST (Day 0):
-[Insert Agent M output here]
+[Agent M output]
 
-REDDIT POST (Day 1 — paste to r/ClaudeAI):
-[Insert Agent I output here]
+REDDIT POST (Day 1 — r/ClaudeAI):
+[Agent I output]
 
 TWITTER THREAD (Day 2):
-[Insert Agent J output here]
+[Agent J output]
 
 DEV.to ARTICLE (Day 3):
-[Insert Agent P output here]
+[Agent P output]
 
-PRODUCT HUNT (Day 4, after 5 stars):
+PRODUCT HUNT (Day 4, after 5★):
 Tagline: [Agent N tagline]
 Description: [Agent N description]
 First comment: [Agent N first comment]
-Gallery captions: [Agent N slide captions]
+Gallery captions: [Agent N captions]
 
-SHOW HN (Day 5, after 10 stars):
-[Insert Agent K output here]
+SHOW HN (Day 5, after 10★):
+[Agent K output]
 
 AWESOME-LIST PR (Day 3):
 Target: [Agent L target repo]
 Markdown line: [Agent L line]
 PR body: [Agent L PR body]
 
-NEWSLETTER PITCHES (Day 0):
-[Insert Agent O pitches here — send all 3]
+NEWSLETTER PITCHES (Day 0 — send all 3):
+[Agent O output]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -1558,25 +1803,26 @@ NEWSLETTER PITCHES (Day 0):
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✓ Repo:        https://github.com/Rishiidev/REPO_NAME
-✓ Website:     https://Rishiidev.github.io/REPO_NAME
-✓ Install:     /plugin install github:Rishiidev/REPO_NAME
+✓ Website:     https://Rishiidev.github.io/REPO_NAME  [or CUSTOM_DOMAIN]
+✓ Install:     INSTALL_CMD
 ✓ Name score:  X/20 — [reason it was chosen]
 ✓ Description: REPO_DESC
 ✓ Topics:      N/20 set
 ✓ README:      SVG embedded ✓  Competitor patterns applied ✓
 ✓ CI badge:    validate.yml active
-✓ Discussions: [status]
-✓ Labels:      5 created (incl. parallel-agent)
+✓ JSON lint:   all .json files valid ✓
+✓ Discussions: [enabled / skipped]
+✓ Labels:      5 created
 ✓ Issue #1:    [title]
 ✓ Release:     v1.0.0 [with/without .skill]
-✓ Pages:       live ~2min → [CUSTOM_DOMAIN if provided, else Rishiidev.github.io/REPO_NAME]
-✓ Validation:  all checks passed
-✓ Sponsor btn: FUNDING.yml active — enable profile at github.com/sponsors/Rishiidev to activate
-✓ Co-author:   [kept / removed per Step 0 Q7]
+✓ Pages:       [live / deploying] → [URL]
+✓ Validation:  all 7 checks passed
+✓ Sponsor btn: FUNDING.yml active
+✓ SVG content: project-specific (no template placeholder text) ✓
 
-AGENTS SPAWNED: 16 (A–P)
+AGENTS SPAWNED:  16 (A–P) [or 13 in LITE mode]
 PARALLEL PHASES: 3 (Phase 1: research/gen, Phase 2: config, Phase 3: distribution)
-ESTIMATED TIME: ~4–6 minutes
+ESTIMATED TIME:  ~4–6 minutes (full) · ~2 minutes (LITE)
 
 LAUNCH ORDER (7-day calendar above):
 LinkedIn + Newsletters (Day 0) → Reddit (Day 1) → X/Twitter (Day 2)
@@ -1587,21 +1833,1175 @@ LinkedIn + Newsletters (Day 0) → Reddit (Day 1) → X/Twitter (Day 2)
 
 ---
 
+## ═══════════════════════════════════════════════
+## ═══ IMPROVE MODE ═══
+## For repos that already exist. Never overwrites without showing a diff.
+## ═══════════════════════════════════════════════
+
+---
+
+### IMPROVE STEP 1 — Repo Discovery
+
+Ask ONE question if not already known from context:
+
+```
+Which repo do you want to improve?
+(Paste the GitHub URL, repo name, or path to the local directory)
+```
+
+Then run:
+
+```bash
+# Resolve repo identity
+REPO_URL="<provided URL or Rishiidev/REPO_NAME>"
+
+# Fetch current GitHub metadata
+gh repo view "$REPO_URL" \
+  --json name,description,topics,homepageUrl,hasDiscussionsEnabled,hasIssuesEnabled,\
+stargazerCount,forkCount,pushedAt,defaultBranchRef \
+  2>/dev/null
+
+# Check for local directory
+ls <local-dir> 2>/dev/null && git -C <local-dir> log --oneline -3 2>/dev/null
+
+# Check resume state
+STATE=<local-dir>/.launch-state
+[ -f "$STATE" ] && echo "=== Existing improve state ===" && cat "$STATE"
+```
+
+Store: `REPO_NAME`, `REPO_OWNER` (Rishiidev), `LOCAL_DIR` (if available), `TODAY`.
+
+---
+
+### IMPROVE STEP 2 — Parallel Audit
+
+## ═══ PARALLEL AUDIT ═══
+## Spawn all 6 audit agents in ONE response now.
+## ═══════════════════════════════════════════════
+
+---
+
+#### Agent AUD-A — File + README Deep Audit
+
+```
+You are auditing the files and README quality in an existing GitHub repo.
+Repo: REPO_OWNER/REPO_NAME
+Local dir (if available): LOCAL_DIR
+
+Fetch all top-level files and key nested files:
+gh api repos/REPO_OWNER/REPO_NAME/contents/ --jq '.[].name'
+gh api repos/REPO_OWNER/REPO_NAME/git/trees/HEAD?recursive=1 --jq '.tree[].path' 2>/dev/null | head -60
+
+For each file that exists, fetch and read it:
+README=$(gh api repos/REPO_OWNER/REPO_NAME/contents/README.md --jq '.content' | base64 -d)
+gh api repos/REPO_OWNER/REPO_NAME/contents/CHANGELOG.md --jq '.content' 2>/dev/null | base64 -d | head -30
+gh api repos/REPO_OWNER/REPO_NAME/contents/CONTRIBUTING.md --jq '.content' 2>/dev/null | base64 -d | head -20
+gh api repos/REPO_OWNER/REPO_NAME/contents/SECURITY.md --jq '.content' 2>/dev/null | base64 -d | head -10
+gh api repos/REPO_OWNER/REPO_NAME/contents/.github/FUNDING.yml --jq '.content' 2>/dev/null | base64 -d
+
+Detect CI last-run status:
+gh api repos/REPO_OWNER/REPO_NAME/actions/runs?per_page=1 \
+  --jq '.workflow_runs[0] | {name: .name, status: .status, conclusion: .conclusion, updated_at: .updated_at}' 2>/dev/null || echo "No CI runs found"
+
+Detect freshness gap — compare README commit date vs repo's last push:
+README_COMMIT_DATE=$(gh api repos/REPO_OWNER/REPO_NAME/commits?path=README.md\&per_page=1 \
+  --jq '.[0].commit.committer.date' 2>/dev/null)
+LAST_PUSH=$(gh api repos/REPO_OWNER/REPO_NAME --jq '.pushed_at' 2>/dev/null)
+# Compute difference in days (README_COMMIT_DATE vs LAST_PUSH)
+# freshness_gap_days = days since README was last updated vs last code commit
+
+Scan README for broken links (http/https links that return 4xx):
+Extract all URLs from README with grep, then check each with curl -s -o /dev/null -w "%{http_code}" --max-time 5 <URL>
+Only report URLs that return 404 or connection error. Limit to 10 checks max.
+
+Check for demo GIF or screenshot in README:
+Look for .gif extensions, "demo", "screenshot", "preview" in image src attributes.
+Also check if assets/ directory has any .gif files:
+gh api repos/REPO_OWNER/REPO_NAME/contents/assets/ --jq '[.[].name | select(endswith(".gif") or endswith(".mp4"))]' 2>/dev/null
+
+Check for "who is this for" sentence:
+Scan README for phrases: "for developers", "for teams", "designed for", "built for", "perfect for", "ideal for", "made for"
+
+Return JSON:
+{
+  "existing_files": ["README.md", "LICENSE", ...],
+  "missing_standard_files": ["SECURITY.md", "FUNDING.yml", ...],
+  "readme_exists": true,
+  "readme_has_svg": true/false,
+  "readme_has_install_table": true/false,
+  "readme_has_value_prop_number": true/false,
+  "readme_has_star_cta_before_features": true/false,
+  "readme_has_before_after": true/false,
+  "readme_has_star_history": true/false,
+  "readme_has_badges": true/false,
+  "readme_has_demo_gif": true/false,
+  "readme_has_targeting_sentence": true/false,
+  "social_preview_exists": true/false,
+  "social_preview_is_self_referential": true/false,
+  "pages_site_exists": true/false,
+  "ci_workflow_exists": true/false,
+  "ci_last_run_status": "success | failure | in_progress | no_ci",
+  "freshness_gap_days": 14,
+  "broken_links": ["https://example.com/dead-link"],
+  "broken_links_count": 2,
+  "plugin_json_exists": true/false,
+  "issue_templates_exist": true/false,
+  "pr_template_exists": true/false,
+  "skill_md_exists": true/false,
+  "readme_raw": "<first 2000 chars of README for scoring>",
+  "stack": "<detected from package.json/requirements.txt/go.mod/Cargo.toml/SKILL.md>"
+}
+```
+
+---
+
+#### Agent AUD-B — GitHub Metadata + Velocity Audit
+
+```
+You are auditing GitHub metadata and growth signals for: REPO_OWNER/REPO_NAME
+
+Run these read-only commands:
+
+gh api repos/REPO_OWNER/REPO_NAME \
+  --jq '{desc: .description, topics: .topics, homepage: .homepage,
+         stars: .stargazers_count, forks: .forks_count,
+         discussions: .has_discussions, issues: .has_issues,
+         created_at: .created_at, pushed_at: .pushed_at,
+         allow_squash_merge: .allow_squash_merge,
+         delete_branch_on_merge: .delete_branch_on_merge}'
+
+gh label list --repo REPO_OWNER/REPO_NAME --json name,color
+
+gh release list --repo REPO_OWNER/REPO_NAME --limit 5 --json tagName,name,publishedAt
+
+gh issue list --repo REPO_OWNER/REPO_NAME --label "good first issue" --limit 5 --json number,title
+
+gh api repos/REPO_OWNER/REPO_NAME/pages --jq '{status: .status, url: .html_url}' 2>/dev/null || echo "Pages: not enabled"
+
+# Check branch protection on default branch:
+DEFAULT_BRANCH=$(gh api repos/REPO_OWNER/REPO_NAME --jq '.default_branch')
+gh api repos/REPO_OWNER/REPO_NAME/branches/$DEFAULT_BRANCH/protection 2>/dev/null | jq '{required_reviews: .required_pull_request_reviews.required_approving_review_count, enforce_admins: .enforce_admins.enabled}' || echo "No branch protection"
+
+# Check Dependabot alerts enabled:
+gh api repos/REPO_OWNER/REPO_NAME/vulnerability-alerts 2>/dev/null && echo "dependabot:enabled" || echo "dependabot:disabled"
+
+# Check CI badge presence in README vs actual CI status:
+# (Look for badge URLs in README that reference /actions/workflows/ or shields.io/github/actions)
+gh api repos/REPO_OWNER/REPO_NAME/contents/README.md --jq '.content' | base64 -d | grep -oE "!\[.{0,40}\]\(https://[^)]+\)" | head -5
+
+# Detect previously-tried distribution channels (search recent issues/discussions):
+gh issue list --repo REPO_OWNER/REPO_NAME --state all --limit 20 --json title,body 2>/dev/null \
+  | jq '[.[] | select((.title + " " + .body) | test("reddit|product hunt|show hn|hackernews|devto|twitter|linkedin"; "i"))]' 2>/dev/null | head -5
+
+Compute star velocity:
+STARS = stargazers_count
+CREATED = created_at (parse to days)
+REPO_AGE_WEEKS = (TODAY - created_at) / 7
+STAR_VELOCITY = STARS / REPO_AGE_WEEKS (round to 1 decimal)
+
+Return JSON:
+{
+  "description": "<current description or null>",
+  "description_has_number": true/false,
+  "description_length": 42,
+  "topics": ["existing", "topics"],
+  "topic_count": 5,
+  "homepage_set": true/false,
+  "homepage_url": "<url or null>",
+  "star_count": 12,
+  "star_velocity_per_week": 1.4,
+  "repo_age_weeks": 8.5,
+  "has_discussions": true/false,
+  "has_issues": true/false,
+  "labels": [{"name": "bug", "color": "d73a4a"}, ...],
+  "missing_standard_labels": ["good first issue", "documentation", ...],
+  "has_good_first_issue": true/false,
+  "latest_release": {"tag": "v1.0.0", "published": "2026-06-10"} or null,
+  "releases_count": 2,
+  "pages_status": "built" or "not enabled",
+  "pages_url": "<url or null>",
+  "branch_protection_enabled": true/false,
+  "delete_branch_on_merge": true/false,
+  "squash_merge_enabled": true/false,
+  "dependabot_enabled": true/false,
+  "previously_tried_channels": ["reddit", "twitter"],
+  "ci_badge_in_readme": true/false,
+  "ci_badge_matches_status": true/false
+}
+```
+
+---
+
+#### Agent AUD-C — README Quality Scorer (15 Dimensions)
+
+```
+You are scoring the quality of an existing README.
+Repo: REPO_OWNER/REPO_NAME
+
+Fetch the full README:
+README=$(gh api repos/REPO_OWNER/REPO_NAME/contents/README.md --jq '.content' | base64 -d)
+
+First detect the README's dominant tone:
+- technical: heavy code blocks, API references, flag tables, minimal prose
+- tutorial: step-by-step numbered instructions, "first do X, then Y" structure
+- terse: bullet-heavy, very short sentences, minimal explanation
+- marketing: benefit statements, emotional language, social proof, CTA-first
+Store as DETECTED_TONE.
+
+Score on 15 dimensions (points per dimension shown):
+
+  [2pts] Social preview: embedded <img src="assets/...svg"> or <img> in first div
+  [2pts] Value prop with a number: headline or first blockquote contains a digit
+  [1pt]  Star CTA before first table or feature list
+  [2pts] Install section: has a code block or table with an install command
+  [1pt]  Before/after or Problem/Fix section
+  [1pt]  Star history chart (star-history.com badge)
+  [1pt]  Badges (CI, license, stars) in header
+  [1pt]  Demo GIF or screenshot showing the tool in action
+  [1pt]  Targeting sentence: "for developers who...", "built for teams that...", "perfect for..."
+  [1pt]  Comparative or benchmark claim: "X times faster", "replaces Y", "unlike Z"
+  [1pt]  Link to CONTRIBUTING.md or contribution guide
+  [1pt]  Code of Conduct mention or link
+  [1pt]  Quick reference table (flags/options/API methods) if CLI or API project
+  [1pt]  FAQ or Troubleshooting section
+  [1pt]  License badge or license section at bottom
+
+Total: /18
+
+For each gap, generate a TONE-AWARE specific fix using DETECTED_TONE.
+A technical README gets technical-sounding fixes. A marketing README gets CTA-forward fixes.
+Do NOT write generic fixes. Derive the exact content from the actual README.
+
+Return JSON:
+{
+  "readme_score": 9,
+  "readme_score_max": 18,
+  "detected_tone": "technical | tutorial | terse | marketing",
+  "gaps": [
+    {
+      "dimension": "Social preview",
+      "score": 0,
+      "max_score": 2,
+      "severity": "critical",
+      "fix": "Add as first element inside <div align=\"center\">:\n<img src=\"assets/social-preview.svg\" alt=\"REPO_NAME\" width=\"100%\"/>",
+      "tone_note": "Precedes all text — tone-neutral"
+    },
+    {
+      "dimension": "Demo GIF",
+      "score": 0,
+      "max_score": 1,
+      "severity": "medium",
+      "fix": "Add a demo GIF showing the core workflow. For technical tone: show terminal output. For marketing tone: show before/after result.",
+      "tone_note": "For technical tone, prefer asciinema-style recording"
+    },
+    ...
+  ],
+  "sections_present": ["Install", "How It Works", "License"],
+  "sections_missing": ["The Problem", "Star History", "FAQ"],
+  "estimated_score_after_fixes": 16,
+  "estimated_improvement": "Score could reach 16/18 with 4 targeted fixes"
+}
+```
+
+---
+
+#### Agent AUD-D — Distribution + Growth Diagnosis
+
+```
+You are diagnosing distribution readiness and growth signals for: REPO_OWNER/REPO_NAME
+
+Run:
+gh api repos/REPO_OWNER/REPO_NAME \
+  --jq '{stars: .stargazers_count, forks: .forks_count, watchers: .watchers_count,
+         created: .created_at, pushed: .pushed_at}'
+
+gh api repos/REPO_OWNER/REPO_NAME/topics --jq '.names'
+
+gh search repos "REPO_NAME" --sort stars --limit 5 --json name,stargazersCount,description 2>/dev/null
+
+Check if social preview SVG exists and if it matches standard template:
+gh api repos/REPO_OWNER/REPO_NAME/contents/assets/social-preview.svg --jq '.content' 2>/dev/null | base64 -d | head -5
+
+# Check traffic data (requires push access):
+gh api repos/REPO_OWNER/REPO_NAME/traffic/views --jq '{count: .count, uniques: .uniques}' 2>/dev/null || echo "Traffic: not accessible"
+gh api repos/REPO_OWNER/REPO_NAME/traffic/clones --jq '{count: .count, uniques: .uniques}' 2>/dev/null || echo "Clones: not accessible"
+gh api repos/REPO_OWNER/REPO_NAME/traffic/popular/referrers --jq '.[0:5]' 2>/dev/null || echo "Referrers: not accessible"
+
+Diagnose star velocity:
+STARS = stargazers_count
+REPO_AGE_WEEKS from AUD-B
+STAR_VELOCITY = STARS / REPO_AGE_WEEKS
+If STAR_VELOCITY < 1: "Reach problem — the right people haven't seen it yet. Fix discoverability (topics, description, distribution)."
+If STAR_VELOCITY ≥ 1 and STAR_VELOCITY < 5: "Resonance problem — people are landing but not starring. Fix README clarity and value prop."
+If STAR_VELOCITY ≥ 5: "Growth is healthy. Focus on sustaining distribution cadence."
+
+Diagnose reach vs resonance:
+UNIQUES = traffic.uniques (14-day window)
+STARS = stargazers_count
+If UNIQUES available:
+  STAR_RATE = STARS / UNIQUES
+  If STAR_RATE < 0.02: "Resonance problem — <2% of visitors star. README or value prop needs work."
+  If STAR_RATE ≥ 0.02: "Reach problem — conversion is fine, just need more visitors."
+Else: "Traffic data unavailable — diagnose by checking referrers and star velocity instead."
+
+Detect already-tried distribution channels from AUD-B previously_tried_channels.
+Do NOT recommend channels already tried — focus on untapped ones.
+
+Return JSON:
+{
+  "star_count": 3,
+  "star_velocity_per_week": 0.4,
+  "growth_diagnosis": "reach | resonance | healthy",
+  "growth_explanation": "0.4 stars/week — the right people haven't seen this yet. Focus on topics + Reddit.",
+  "traffic_views_14d": 42,
+  "traffic_uniques_14d": 28,
+  "star_conversion_rate": 0.04,
+  "top_referrers": ["github.com", "google.com"],
+  "distribution_unlocked": {
+    "reddit": true,
+    "linkedin": true,
+    "twitter": true,
+    "devto": true,
+    "product_hunt": false,
+    "show_hn": false
+  },
+  "untapped_channels": ["devto", "product_hunt"],
+  "previously_tried_channels": ["reddit"],
+  "social_preview_quality": "missing | self_referential | generic | good",
+  "searchability_score": 4,
+  "topic_gap_count": 15,
+  "repo_age_days": 8,
+  "days_since_last_push": 2,
+  "distribution_recommendation": "Reach problem. Fix topics first (0 → 20), then post Dev.to article. Save PH for when you hit 5 stars."
+}
+```
+
+---
+
+#### Agent AUD-E — Competitive Benchmark (NEW)
+
+```
+You are benchmarking REPO_OWNER/REPO_NAME against the top 3 similar repos.
+
+Step 1: Find top 3 competitors:
+gh search repos --topic <primary_topic_from_AUD-B> --sort stars --limit 5 --json name,fullName,stargazersCount,description,topics 2>/dev/null
+# Also try searching by repo name keywords:
+gh search repos "REPO_NAME_KEYWORDS" --sort stars --limit 5 --json name,fullName,stargazersCount,description,topics 2>/dev/null
+
+Pick the top 3 by stars that are NOT REPO_OWNER/REPO_NAME.
+Store as COMPETITOR_1, COMPETITOR_2, COMPETITOR_3.
+
+Step 2: Mine each competitor's README:
+For each COMPETITOR:
+  README=$(gh api repos/COMPETITOR/contents/README.md --jq '.content' 2>/dev/null | base64 -d | head -100)
+  TOPICS=$(gh api repos/COMPETITOR/topics --jq '.names' 2>/dev/null)
+  
+  Extract:
+  - Does it have a demo GIF? (look for .gif in img tags)
+  - Does it have a comparison table? (look for | ---|)
+  - Does it have a "Quick Start" section?
+  - Does it use a star history chart?
+  - What are its first 5 topics?
+  - What is its headline (first H1 or first line after logo)?
+  - Does it quantify its value prop (contains a number in headline)?
+
+Step 3: Identify patterns present in ≥2 competitors that REPO_OWNER/REPO_NAME is MISSING.
+These are the highest-signal gaps — competitors found these patterns worth including.
+
+Return JSON:
+{
+  "competitors": [
+    {
+      "full_name": "owner/repo",
+      "stars": 1240,
+      "description": "...",
+      "topics": ["topic1", "topic2"],
+      "has_demo_gif": true,
+      "has_comparison_table": false,
+      "has_quick_start": true,
+      "has_star_history": true,
+      "headline": "Ship your CLI in 5 minutes",
+      "has_number_in_headline": true
+    },
+    ...
+  ],
+  "competitor_topics_pool": ["topic1", "topic2", "topic3", ...],
+  "patterns_in_2_plus_competitors": ["demo_gif", "star_history", "quick_start"],
+  "patterns_missing_in_target": ["demo_gif", "comparison_table"],
+  "competitor_headline_patterns": [
+    "All 3 use a number in the headline",
+    "2/3 lead with a time-saving claim"
+  ],
+  "recommended_topics_from_competitors": ["topic-a", "topic-b", "topic-c"],
+  "benchmark_summary": "Your repo is missing demo_gif and star_history — both present in all 3 top competitors."
+}
+```
+
+---
+
+#### Agent AUD-F — Consistency & Freshness Audit (NEW)
+
+```
+You are checking version consistency and file freshness across all version sources.
+Repo: REPO_OWNER/REPO_NAME
+Local dir (if available): LOCAL_DIR
+
+Step 1: Collect version strings from every source:
+
+# package.json (Node)
+gh api repos/REPO_OWNER/REPO_NAME/contents/package.json --jq '.content' 2>/dev/null | base64 -d | jq -r '.version' 2>/dev/null || echo "no package.json"
+
+# pyproject.toml (Python)
+gh api repos/REPO_OWNER/REPO_NAME/contents/pyproject.toml --jq '.content' 2>/dev/null | base64 -d | grep -E "^version\s*=" | head -1 2>/dev/null || echo "no pyproject.toml"
+
+# go.mod (Go — use module path, not version)
+gh api repos/REPO_OWNER/REPO_NAME/contents/go.mod --jq '.content' 2>/dev/null | base64 -d | head -3 2>/dev/null || echo "no go.mod"
+
+# Cargo.toml (Rust)
+gh api repos/REPO_OWNER/REPO_NAME/contents/Cargo.toml --jq '.content' 2>/dev/null | base64 -d | grep "^version" | head -1 2>/dev/null || echo "no Cargo.toml"
+
+# Latest git tag:
+gh api repos/REPO_OWNER/REPO_NAME/tags --jq '.[0].name' 2>/dev/null || echo "no tags"
+
+# Latest GitHub release:
+gh api repos/REPO_OWNER/REPO_NAME/releases/latest --jq '.tag_name' 2>/dev/null || echo "no releases"
+
+# Version in README install command:
+gh api repos/REPO_OWNER/REPO_NAME/contents/README.md --jq '.content' | base64 -d \
+  | grep -oE "(v?[0-9]+\.[0-9]+\.[0-9]+)" | head -3 2>/dev/null || echo "no version in README"
+
+Step 2: Collect file freshness signals:
+gh api repos/REPO_OWNER/REPO_NAME/commits?path=CHANGELOG.md\&per_page=1 --jq '.[0].commit.committer.date' 2>/dev/null || echo "no CHANGELOG commits"
+gh api repos/REPO_OWNER/REPO_NAME/commits?path=README.md\&per_page=1 --jq '.[0].commit.committer.date' 2>/dev/null
+gh api repos/REPO_OWNER/REPO_NAME/commits?path=CONTRIBUTING.md\&per_page=1 --jq '.[0].commit.committer.date' 2>/dev/null || echo "no CONTRIBUTING"
+LAST_PUSH=$(gh api repos/REPO_OWNER/REPO_NAME --jq '.pushed_at')
+
+Step 3: Compare all version strings. Identify mismatches.
+A mismatch is when two sources that should agree on version contain different version strings.
+
+Return JSON:
+{
+  "version_sources": {
+    "package_json": "1.2.0",
+    "pyproject_toml": null,
+    "go_mod": null,
+    "cargo_toml": null,
+    "latest_git_tag": "v1.1.0",
+    "latest_github_release": "v1.1.0",
+    "readme_install_command": "1.0.0"
+  },
+  "version_mismatches": [
+    {"source_a": "package_json", "version_a": "1.2.0", "source_b": "latest_git_tag", "version_b": "v1.1.0", "severity": "critical"},
+    {"source_a": "readme_install_command", "version_a": "1.0.0", "source_b": "latest_github_release", "version_b": "v1.1.0", "severity": "medium"}
+  ],
+  "version_mismatch_count": 2,
+  "canonical_version_recommendation": "v1.2.0",
+  "file_freshness": {
+    "readme_last_updated_days_ago": 14,
+    "changelog_last_updated_days_ago": 30,
+    "contributing_last_updated_days_ago": null,
+    "last_code_push_days_ago": 2
+  },
+  "stale_files": ["CHANGELOG.md (30 days behind last push)", "README.md (14 days behind)"],
+  "freshness_verdict": "CHANGELOG is 30 days stale — needs a new version entry. README is 12 days behind last code push."
+}
+```
+
+---
+
+### IMPROVE STEP 3 — ROI Gap Analysis + User Confirmation
+
+After all 6 audit agents complete, synthesize into an **ROI-scored punch list**.
+
+For each gap, compute:
+- **Impact** (1–5): how much this gap hurts discoverability, conversion, or trust
+- **Effort** (1–5): how many steps to fix (1 = one command, 5 = requires significant work)
+- **ROI** = (Impact ÷ Effort) × 10 — higher is better
+
+Sort all gaps by ROI descending. Mark items with ROI ≥ 8 AND Effort ≤ 2 as **Quick Wins**.
+
+Compute Health Score:
+- Current: sum of points actually present across AUD-C's 18 dimensions + AUD-B metadata score (topics/20 × 5 + description_has_number × 3 + has_release × 2 = max 10) + AUD-F consistency (no mismatches = 5, each mismatch -2, min 0) = max 33
+- Scale to 100: (raw/33) × 100, round to nearest integer
+- Projected: after applying all gaps in the punch list
+
+Format and present this to the user:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍  REPO HEALTH CHECK — REPO_OWNER/REPO_NAME
+    Stars: N (VELOCITY/wk) · Topics: N/20 · README: N/18
+    Growth: GROWTH_DIAGNOSIS (reach | resonance | healthy)
+    Health Score: CURRENT_SCORE/100 → PROJECTED_SCORE/100
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ QUICK WINS — high ROI, low effort (do these first)
+  □ [ROI 9.0] 0 topics → add 20 topics  (Impact 5, Effort 1)
+  □ [ROI 8.0] Description missing number → add one number  (Impact 4, Effort 1)
+  □ [ROI 8.0] Broken link in README (2 found) → remove/fix  (Impact 4, Effort 1)
+
+📊 ALL GAPS — sorted by ROI
+  [ROI N.N] [gap title] — [specific detail from audit]  (Impact N, Effort N)
+  [ROI N.N] Version mismatch: package.json 1.2.0 vs git tag v1.1.0  (Impact 4, Effort 2)
+  [ROI N.N] No demo GIF — competitors 2/3 have one  (Impact 3, Effort 3)
+  [ROI N.N] CI last run: FAILED — badge shows passing  (Impact 4, Effort 4)
+  [ROI N.N] No CONTRIBUTING.md → discourages contributors  (Impact 2, Effort 2)
+  [ROI N.N] No GitHub Pages site  (Impact 2, Effort 5)
+  ... [all gaps listed with ROI]
+
+🏆 COMPETITOR BENCHMARK  (from AUD-E)
+  Top competitor: COMPETITOR_1 (N stars)
+  You're missing: PATTERN_A, PATTERN_B — both in ≥2 top repos
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fix all? (recommended) · Quick wins only · Pick by number
+```
+
+Wait for user response. Store confirmed gap list as `CONFIRMED_GAPS`.
+
+If user says "all" → `CONFIRMED_GAPS = all gaps above`
+If user says "quick wins" → `CONFIRMED_GAPS = items marked Quick Win`
+If user picks by number → `CONFIRMED_GAPS = selected numbered items`
+
+---
+
+### IMPROVE STEP 4 — Selective Parallel Fixes
+
+**Read this mapping and spawn ONLY the agents needed for CONFIRMED_GAPS.**
+Spawn all applicable fix agents in a SINGLE response (parallel).
+
+| Gap | Fix agent to spawn |
+|-----|-------------------|
+| README score < 14/18 | **Agent FIX-README** |
+| Topics < 15 | **Agent FIX-TOPICS** |
+| Description weak/missing | **Agent FIX-DESC** |
+| No social preview OR self-referential SVG | **Agent FIX-SVG** (same as Agent C from launch) |
+| No GitHub Pages | Run Pages step from launch mode |
+| Missing standard files (SECURITY, FUNDING, etc.) | **Agent FIX-FILES** |
+| Missing standard labels | **Agent FIX-LABELS** |
+| No good-first-issue | **Agent FIX-ISSUE** |
+| No release / outdated release | **Agent FIX-RELEASE** |
+| Version mismatches across sources | **Agent FIX-CONSISTENCY** |
+| Branch protection / repo settings not optimized | **Agent FIX-SETTINGS** |
+| CHANGELOG stale or missing | **Agent FIX-CHANGELOG** |
+| Distribution content needed | Spawn relevant Phase 3 agents (I–P) |
+
+---
+
+#### Agent FIX-README — Non-destructive README Improvement
+
+```
+You are improving an existing README without replacing it.
+Repo: REPO_OWNER/REPO_NAME
+Current README score: N/18
+Detected tone: DETECTED_TONE (from AUD-C)
+Confirmed gaps to fix: [list from AUD-C gaps where dimension matches CONFIRMED_GAPS]
+Competitor patterns to use: PATTERNS_MISSING_IN_TARGET (from AUD-E)
+Competitor topics pool: COMPETITOR_TOPICS_POOL (from AUD-E)
+
+Fetch the current README:
+README=$(gh api repos/REPO_OWNER/REPO_NAME/contents/README.md --jq '.content' | base64 -d)
+
+TONE RULES — apply throughout all proposed fixes:
+- technical tone: use precise language, show exact commands, avoid marketing superlatives
+- tutorial tone: use numbered steps, "Next, do X" transitions, "You should see Y" confirmations
+- terse tone: bullets only, no explanatory prose, shortest possible phrasing
+- marketing tone: lead with benefit not feature, include social proof, every section has a CTA
+
+COMPETITOR INTEGRATION:
+For any gap also present in competitor patterns (from AUD-E patterns_missing_in_target),
+note in the fix: "Competitors with this: N/3"
+Use competitor_topics_pool as seed for topic suggestions within README text.
+If competitors use demo GIFs, propose a terminal recording approach matched to the stack.
+
+For EACH confirmed gap:
+1. Show the CURRENT content for that section (or "section missing")
+2. Show the PROPOSED replacement/addition — written in DETECTED_TONE
+3. Mark: ADD (new section) or REPLACE (changes existing content)
+4. Note competitor signal if applicable
+
+Format each as:
+
+--- FIX N: [gap name] ([ADD/REPLACE]) — ROI: N.N ---
+CURRENT:
+<current content or "not present">
+
+PROPOSED:
+<exact markdown to add or substitute — written in DETECTED_TONE>
+
+IMPACT: [one sentence on why this improves discoverability or conversion]
+COMPETITOR SIGNAL: [e.g. "Present in 3/3 top competitors" or "n/a"]
+---
+
+Rules:
+- Never rewrite sections that score well — only touch confirmed gaps
+- For SVG: place BEFORE any existing content in the header div, not after
+- For star CTA: insert BEFORE the first table, not at the end
+- For value prop: improve the EXISTING headline, do not add a new one above it
+- For missing sections (Problem, Star History, FAQ): append after the closest related section
+- For demo GIF gap: propose recording command appropriate for stack (asciinema for CLI, screen capture for GUI)
+- For targeting sentence: add to existing intro paragraph, not as separate section
+- Preserve all existing content that isn't being replaced
+- Show the full before/after for REPLACE operations — never a partial diff
+
+After showing all proposed fixes, ask:
+"Apply all N fixes? Or say which numbers to skip."
+
+Wait for confirmation. Then apply only confirmed fixes to the README in memory.
+Write the updated README to disk only after confirmation.
+```
+
+---
+
+#### Agent FIX-TOPICS — Topic Gap Filler
+
+```
+You are adding missing topics to: REPO_OWNER/REPO_NAME
+Current topics: [from AUD-B topics]
+Competitor topics pool: COMPETITOR_TOPICS_POOL (from AUD-E — high-signal seeds)
+Target: 20 topics
+
+Get the current topic list:
+gh api repos/REPO_OWNER/REPO_NAME/topics --jq '.names'
+
+TOPIC STRATEGY — three layers:
+1. Competitor-validated (from AUD-E competitor_topics_pool): topics that top similar repos use.
+   Prioritize these — they are proven to attract the right audience.
+2. Stack-derived: topics based on AUD-A detected stack (e.g. "nodejs", "typescript", "python").
+3. Category-signal: broad discovery topics (e.g. "cli", "developer-tools", "open-source", "github").
+
+Build a list of 20 topics total:
+- Start with all current topics (no duplicates)
+- Fill from competitor topics first (remove any that already exist)
+- Then add stack topics
+- Then add category-signal topics
+- Never exceed 20
+
+Show the user:
+  Current topics (N): [list]
+  From competitors: [list — label source: COMPETITOR_NAME]
+  From stack: [list]
+  From category: [list]
+  Total adding: [20-N]
+
+Apply using gh_safe:
+gh_safe repos/REPO_OWNER/REPO_NAME/topics --method PUT \
+  --field names[]="topic1" --field names[]="topic2" ... [all 20]
+
+Verify:
+gh api repos/REPO_OWNER/REPO_NAME/topics --jq '.names | length'
+
+Report: "Topics: N → 20 (N from competitors, N from stack, N from category)"
+```
+
+---
+
+#### Agent FIX-DESC — Description Upgrade
+
+```
+You are improving the repo description for: REPO_OWNER/REPO_NAME
+Current description: [from AUD-B]
+Current score: [from AUD-B — does it have a number? is it under 80 chars?]
+
+Read the README value prop and Agent A/AUD-A intelligence to understand the project.
+
+Generate 5 scored description candidates (≤100 chars each).
+Score: has_number (2pts), action_verb_first (2pts), benefit_clear (2pts),
+       under_80_chars (2pts), no_jargon (2pts). Max 10.
+
+Show the scored table. Auto-select the top scorer. Let the user pick.
+
+Apply:
+gh_safe repos/REPO_OWNER/REPO_NAME --method PATCH --field description="CHOSEN_DESC"
+
+Verify:
+gh api repos/REPO_OWNER/REPO_NAME --jq '.description'
+```
+
+---
+
+#### Agent FIX-FILES — Missing Standard Files
+
+```
+You are adding missing standard files to: REPO_OWNER/REPO_NAME
+Missing files: [list from AUD-A missing_standard_files]
+Stack: [from AUD-A stack]
+Category: [detected from stack]
+Date: TODAY
+
+For each missing file, write it to LOCAL_DIR (or use gh api to create it if no local dir):
+
+Files to potentially write (only write if missing):
+- SECURITY.md → use the template from Synthesis step (category-aware scope section)
+- .github/FUNDING.yml → github: [REPO_OWNER]
+- CONTRIBUTING.md → use category-appropriate template
+- .github/ISSUE_TEMPLATE/feature-request.yml → standard template
+- .github/ISSUE_TEMPLATE/bug-report.yml → standard template
+- .github/PULL_REQUEST_TEMPLATE.md → category-appropriate checklist
+- .github/workflows/validate.yml → standard CI checks
+
+For each file: confirm "Writing FILENAME..." before writing.
+Do NOT write files that already exist — check AUD-A existing_files first.
+
+After writing all files, commit:
+git -C LOCAL_DIR add <specific new files only>
+git -C LOCAL_DIR commit -m "Add missing GitHub standard files"
+git -C LOCAL_DIR push
+
+Report: "Written: [list]. Skipped (already existed): [list]."
+```
+
+---
+
+#### Agent FIX-LABELS — Standard Label Creation
+
+```
+Repo: REPO_OWNER/REPO_NAME
+Missing labels: [from AUD-B missing_standard_labels]
+
+Only create labels that don't already exist.
+Use gh_safe for each:
+
+gh_safe repos/REPO_OWNER/REPO_NAME/labels --method POST --field name="good first issue" --field color="7057ff" --field description="Good for newcomers" 2>/dev/null || true
+gh_safe repos/REPO_OWNER/REPO_NAME/labels --method POST --field name="documentation"   --field color="0075ca" --field description="Improvements to docs" 2>/dev/null || true
+gh_safe repos/REPO_OWNER/REPO_NAME/labels --method POST --field name="enhancement"      --field color="a2eeef" --field description="New feature" 2>/dev/null || true
+gh_safe repos/REPO_OWNER/REPO_NAME/labels --method POST --field name="bug"              --field color="d73a4a" --field description="Something isn't working" 2>/dev/null || true
+gh_safe repos/REPO_OWNER/REPO_NAME/labels --method POST --field name="question"         --field color="d876e3" --field description="Further information needed" 2>/dev/null || true
+
+Report: "Labels created: N. Already existed: N."
+```
+
+---
+
+#### Agent FIX-ISSUE — Good First Issue
+
+```
+Repo: REPO_OWNER/REPO_NAME
+Stack: [from AUD-A stack]
+Existing good-first-issue: [from AUD-B has_good_first_issue]
+
+Only run if AUD-B has_good_first_issue = false.
+
+Step 1: Read actual repo history to derive a genuine issue:
+# Recent commits — what has been added/changed lately?
+gh api repos/REPO_OWNER/REPO_NAME/commits?per_page=20 \
+  --jq '[.[] | {sha: .sha[0:7], message: .commit.message | split("\n")[0]}]'
+
+# Merged PRs — what patterns of contribution have already landed?
+gh api repos/REPO_OWNER/REPO_NAME/pulls?state=closed\&per_page=20 \
+  --jq '[.[] | select(.merged_at != null) | {title: .title, labels: [.labels[].name]}]' 2>/dev/null
+
+# Open issues — what's already filed? Don't duplicate.
+gh issue list --repo REPO_OWNER/REPO_NAME --state open --limit 10 --json title
+
+# Read README to understand what documentation gaps exist:
+gh api repos/REPO_OWNER/REPO_NAME/contents/README.md --jq '.content' | base64 -d | head -80
+
+Step 2: From the commit history and README, derive one genuine good-first-issue.
+Choose from these categories based on what's actually missing or could use improvement:
+- Documentation: a README section that is thin, missing, or unclear
+- Test coverage: a function with no test (check if test files exist in the tree)
+- Example: a missing usage example for a feature mentioned in commits
+- Typo/copy: find an actual existing typo or unclear phrasing in docs
+- CI: if no CI workflow exists, suggest adding one
+
+Do NOT invent tasks that aren't real for this repo.
+Do NOT create a generic "add tests" issue — be specific to an actual file or function.
+
+Verify labels exist before creating:
+gh label list --repo REPO_OWNER/REPO_NAME --json name | jq '.[].name'
+# If "good first issue" label is missing, create it first (use FIX-LABELS or inline):
+gh_safe repos/REPO_OWNER/REPO_NAME/labels --method POST \
+  --field name="good first issue" --field color="7057ff" \
+  --field description="Good for newcomers" 2>/dev/null || true
+
+gh issue create \
+  --repo REPO_OWNER/REPO_NAME \
+  --title "<specific title derived from actual repo content>" \
+  --body "## Context
+<one paragraph explaining what this is and why it matters, derived from actual code/docs>
+
+## What to do
+<numbered steps, specific to this repo's files and structure>
+
+## Files to look at
+- <actual file path from the tree>
+
+## Success criteria
+<exactly what done looks like — testable>
+
+## Skill level
+Perfect for someone new to this codebase. No prior context required." \
+  --label "good first issue" \
+  --label "documentation"
+
+Report: "Issue #N created: [title]"
+```
+
+---
+
+#### Agent FIX-RELEASE — Version-aware Release
+
+```
+Repo: REPO_OWNER/REPO_NAME
+Existing releases: [from AUD-B]
+.skill file: [from user if provided, or "none"]
+
+Detect current version:
+LATEST=$(gh release list --repo REPO_OWNER/REPO_NAME --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null)
+GIT_LATEST=$(git -C LOCAL_DIR tag --sort=-v:refname 2>/dev/null | head -1)
+CURRENT="${LATEST:-${GIT_LATEST:-none}}"
+echo "Current version: $CURRENT"
+
+If no releases exist → create v1.0.0
+If releases exist → parse CURRENT, offer:
+  Patch: v1.0.1 (bug fixes)
+  Minor: v1.1.0 (new features, backward compatible)
+  Major: v2.0.0 (breaking changes)
+
+Ask the user which to use. Default: patch.
+
+Create release with appropriate version:
+gh release create <CHOSEN_VERSION> \
+  $([ "SKILL_PATH" != "none" ] && echo "SKILL_PATH") \
+  --repo REPO_OWNER/REPO_NAME \
+  --title "<CHOSEN_VERSION> — <brief description of what changed>" \
+  --notes "## What's in <CHOSEN_VERSION>
+
+Released: TODAY
+
+### Changed
+[Summarize actual changes from recent git log or README]
+
+### Install
+\`\`\`
+INSTALL_CMD
+\`\`\`"
+
+Report: "Release <CHOSEN_VERSION> created."
+```
+
+---
+
+#### Agent FIX-CONSISTENCY — Version Mismatch Repair (NEW)
+
+```
+You are fixing version mismatches across all version sources.
+Repo: REPO_OWNER/REPO_NAME
+Local dir (if available): LOCAL_DIR
+Version mismatches: [from AUD-F version_mismatches]
+Canonical version recommendation: [from AUD-F canonical_version_recommendation]
+
+Only run if AUD-F version_mismatch_count > 0.
+
+Step 1: Show the user what's mismatched:
+
+--- VERSION AUDIT ---
+package.json:        [AUD-F value or "not present"]
+pyproject.toml:      [AUD-F value or "not present"]
+go.mod:              [AUD-F value or "not present"]
+Cargo.toml:          [AUD-F value or "not present"]
+Latest git tag:      [AUD-F value or "none"]
+Latest GitHub release: [AUD-F value or "none"]
+README install cmd:  [AUD-F value or "none found"]
+
+Mismatches found: N
+Proposed canonical: CANONICAL_VERSION
+---
+
+Ask: "Update all sources to CANONICAL_VERSION? Or say your preferred version."
+Wait for response. Store as CHOSEN_VERSION.
+
+Step 2: Apply fixes for each source that needs updating:
+
+For package.json (if LOCAL_DIR available):
+# Use jq to update in-place, not sed
+jq ".version = \"CHOSEN_VERSION\"" LOCAL_DIR/package.json > LOCAL_DIR/package.json.tmp \
+  && mv LOCAL_DIR/package.json.tmp LOCAL_DIR/package.json
+echo "Updated package.json"
+
+For pyproject.toml (if LOCAL_DIR available):
+# Use sed only for the version line — targeted, not destructive
+sed -i.bak "s/^version = \".*\"/version = \"CHOSEN_VERSION\"/" LOCAL_DIR/pyproject.toml
+rm LOCAL_DIR/pyproject.toml.bak
+echo "Updated pyproject.toml"
+
+For README install command version references:
+# Show the specific lines that contain the old version
+grep -n "WRONG_VERSION" LOCAL_DIR/README.md
+# Update only those lines
+sed -i.bak "s/WRONG_VERSION/CHOSEN_VERSION/g" LOCAL_DIR/README.md
+rm LOCAL_DIR/README.md.bak
+echo "Updated README.md install command version"
+
+For git tag (only if CHOSEN_VERSION is newer than latest tag):
+git -C LOCAL_DIR tag CHOSEN_VERSION 2>/dev/null || echo "Tag already exists — skipping"
+
+Commit the file changes:
+git -C LOCAL_DIR add package.json pyproject.toml README.md 2>/dev/null
+git -C LOCAL_DIR commit -m "chore: align version to CHOSEN_VERSION across all sources"
+git -C LOCAL_DIR push
+
+Report: "Version aligned to CHOSEN_VERSION across: [list of files updated]. Skipped: [list]."
+```
+
+---
+
+#### Agent FIX-SETTINGS — Repo Settings Optimization (NEW)
+
+```
+You are optimizing repository settings for: REPO_OWNER/REPO_NAME
+Settings from AUD-B: branch_protection=B, delete_branch_on_merge=D, squash_merge=S, dependabot=E
+
+Only update settings that are NOT already optimal.
+
+Step 1: Show current state and proposed changes:
+
+--- SETTINGS AUDIT ---
+Delete branch on merge:    [current] → enable (reduces branch clutter)
+Squash merge:              [current] → enable (cleaner commit history)
+Branch protection (main):  [current] → [action needed or "already protected"]
+Dependabot alerts:         [current] → enable (free security scanning)
+---
+
+Ask: "Apply these settings optimizations? (recommended)"
+Wait for confirmation.
+
+Step 2: Apply confirmed changes:
+
+Enable delete branch on merge + squash merge:
+gh_safe repos/REPO_OWNER/REPO_NAME --method PATCH \
+  --field delete_branch_on_merge=true \
+  --field allow_squash_merge=true
+
+Enable Dependabot vulnerability alerts:
+gh_safe repos/REPO_OWNER/REPO_NAME/vulnerability-alerts --method PUT 2>/dev/null || true
+
+Enable Dependabot auto security updates (if alerts enabled):
+gh_safe repos/REPO_OWNER/REPO_NAME/automated-security-fixes --method PUT 2>/dev/null || true
+
+For branch protection — only if not already set:
+DEFAULT_BRANCH=$(gh api repos/REPO_OWNER/REPO_NAME --jq '.default_branch')
+gh_safe repos/REPO_OWNER/REPO_NAME/branches/$DEFAULT_BRANCH/protection \
+  --method PUT \
+  --field required_status_checks=null \
+  --field enforce_admins=false \
+  --field required_pull_request_reviews=null \
+  --field restrictions=null 2>/dev/null || echo "Branch protection: skipped (may require admin access)"
+
+Verify:
+gh api repos/REPO_OWNER/REPO_NAME --jq '{delete_branch_on_merge: .delete_branch_on_merge, allow_squash_merge: .allow_squash_merge}'
+
+Report: "Settings updated: [list what changed]. Skipped: [list why]."
+```
+
+---
+
+#### Agent FIX-CHANGELOG — Append New Version Block (NEW)
+
+```
+You are updating the CHANGELOG for: REPO_OWNER/REPO_NAME
+Local dir (if available): LOCAL_DIR
+Stale verdict: [from AUD-F stale_files — includes CHANGELOG status]
+
+NEVER overwrite or replace an existing CHANGELOG — only APPEND a new version block.
+
+Step 1: Read the existing CHANGELOG to understand its format:
+CHANGELOG=$(gh api repos/REPO_OWNER/REPO_NAME/contents/CHANGELOG.md --jq '.content' 2>/dev/null | base64 -d)
+If no CHANGELOG exists: create a new file with the standard header + first version block.
+
+Detect the CHANGELOG format from the existing content:
+- Does it use ## [version] — date format? (Keep Changelog style)
+- Does it use ## version — date format? (simpler)
+- Does it use ### Added / Changed / Fixed subsections?
+Match the detected format exactly for the new block.
+
+LAST_ENTRY_VERSION=$(parse the most recent version number from CHANGELOG header)
+
+Step 2: Read git history since the last CHANGELOG entry:
+# Get commits since last tag/entry:
+LAST_TAG=$(gh api repos/REPO_OWNER/REPO_NAME/tags --jq '.[0].name' 2>/dev/null || echo "")
+if [ -n "$LAST_TAG" ]; then
+  git -C LOCAL_DIR log $LAST_TAG..HEAD --oneline --no-merges 2>/dev/null | head -20
+else
+  git -C LOCAL_DIR log --oneline --no-merges -20 2>/dev/null | head -20
+fi
+
+# Get merged PRs since last CHANGELOG entry:
+gh api repos/REPO_OWNER/REPO_NAME/pulls?state=closed\&per_page=20 \
+  --jq '[.[] | select(.merged_at != null) | {title: .title, number: .number, merged_at: .merged_at}]' 2>/dev/null
+
+Step 3: Draft the new version block matching existing format:
+New version = CANONICAL_VERSION from AUD-F (or v1.0.0 if no versions exist)
+Date = TODAY
+
+Categorize commits/PRs into:
+- Added: new features (feat:, add , new )
+- Changed: modifications (update , change , refactor )
+- Fixed: bug fixes (fix:, bugfix , closes #)
+- Removed: deletions (remove , delete , drop )
+Only include categories that have at least one item.
+
+Show the user:
+--- NEW CHANGELOG BLOCK (will be PREPENDED after the ## [Unreleased] line or at the top) ---
+[full new version block in detected format]
+---
+
+Ask: "Add this block to CHANGELOG.md?"
+Wait for confirmation.
+
+Step 4: Prepend the new block immediately after the first line / ## [Unreleased] section:
+# Write to disk (LOCAL_DIR) or create via gh api if no LOCAL_DIR:
+if [ -n "$LOCAL_DIR" ]; then
+  # Insert the new block after line 1 (or after [Unreleased] section if present)
+  NEW_BLOCK="[confirmed new block content]"
+  # Use awk to insert after the header line
+  awk "NR==1{print; print NEW_BLOCK; next}1" LOCAL_DIR/CHANGELOG.md > LOCAL_DIR/CHANGELOG.md.tmp
+  mv LOCAL_DIR/CHANGELOG.md.tmp LOCAL_DIR/CHANGELOG.md
+  git -C LOCAL_DIR add CHANGELOG.md
+  git -C LOCAL_DIR commit -m "docs: add CHOSEN_VERSION changelog entry"
+  git -C LOCAL_DIR push
+else
+  # No local dir — update via GitHub API
+  CONTENT=$(printf '%s' "$EXISTING_CHANGELOG_WITH_NEW_BLOCK" | base64)
+  gh api repos/REPO_OWNER/REPO_NAME/contents/CHANGELOG.md --method PUT \
+    --field message="docs: add CHOSEN_VERSION changelog entry" \
+    --field content="$CONTENT" \
+    --field sha="$(gh api repos/REPO_OWNER/REPO_NAME/contents/CHANGELOG.md --jq '.sha')"
+fi
+
+Report: "CHANGELOG updated — appended CHOSEN_VERSION block with N entries."
+```
+
+---
+
+### IMPROVE STEP 5 — Validation
+
+```bash
+gh repo view REPO_OWNER/REPO_NAME \
+  --json name,description,topics,homepageUrl,hasDiscussionsEnabled,hasIssuesEnabled
+
+TOPIC_COUNT=$(gh api repos/REPO_OWNER/REPO_NAME/topics --jq '.names | length')
+echo "Topics: $TOPIC_COUNT"
+
+gh label list --repo REPO_OWNER/REPO_NAME --json name
+
+gh release list --repo REPO_OWNER/REPO_NAME --limit 3 --json tagName,name
+
+# Re-check CI status after any workflow changes:
+gh api repos/REPO_OWNER/REPO_NAME/actions/runs?per_page=1 \
+  --jq '.workflow_runs[0] | {status: .status, conclusion: .conclusion}' 2>/dev/null || true
+
+# Re-check version consistency:
+gh api repos/REPO_OWNER/REPO_NAME/tags --jq '.[0].name' 2>/dev/null
+gh api repos/REPO_OWNER/REPO_NAME/releases/latest --jq '.tag_name' 2>/dev/null || true
+```
+
+For each item in CONFIRMED_GAPS, verify the fix landed:
+- Topic gap → topics count now ≥ 15? ✓/✗
+- Description gap → new description set? ✓/✗
+- Label gap → all 5 standard labels present? ✓/✗
+- README gap → score improved (re-evaluate AUD-C dimensions on new README)? ✓/✗
+- Pages gap → Pages status = "built"? ✓/✗
+- Release gap → new release present? ✓/✗
+- Version consistency gap → all sources now agree? ✓/✗
+- CHANGELOG gap → new version block prepended? ✓/✗
+- Settings gap → delete_branch_on_merge and squash_merge enabled? ✓/✗
+- Broken links → re-check the previously broken URLs? ✓/✗
+
+Recompute Health Score:
+Run same formula as STEP 3. Compare: BEFORE_SCORE/100 → AFTER_SCORE/100.
+
+Report each as ✓ FIXED or ✗ STILL FAILING with the repair command.
+
+Write final checkpoint:
+```bash
+echo "improve_done:$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> <local-dir>/.launch-state
+```
+
+---
+
+### IMPROVE FINAL REPORT
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔧  IMPROVE COMPLETE — REPO_OWNER/REPO_NAME
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Health Score:   BEFORE_SCORE/100 → AFTER_SCORE/100  (+DELTA)
+
+✓ README:         N/18 → M/18  [N fixes applied, tone: DETECTED_TONE]
+✓ Topics:         X → 20  (N from competitors, N from stack)
+✓ Description:    [new description]
+✓ Labels:         N created
+✓ Issue:          [title or "already existed"]
+✓ Release:        [version]
+✓ Pages:          [live / already existed / skipped]
+✓ Files added:    [list]
+✓ SVG:            [regenerated / already good / skipped]
+✓ Version sync:   [aligned to CHOSEN_VERSION / "already consistent"]
+✓ CHANGELOG:      [new block added / "already current"]
+✓ Settings:       [changes applied / "already optimal"]
+✓ Broken links:   [N fixed / "none found"]
+
+Gaps fixed:   N / N confirmed
+Still open:   [anything that failed validation + specific fix command]
+
+GROWTH CONTEXT (from AUD-D):
+  Stars: N (VELOCITY/wk) — GROWTH_DIAGNOSIS
+  [reach problem]: Fix discoverability before distribution. Topics + description are now done.
+  [resonance problem]: README improved. Monitor star rate over next 7 days.
+  [healthy]: Keep the distribution cadence going.
+
+NEXT STEPS:
+  If stars < 5:  Post LinkedIn + Reddit now (untapped: UNTAPPED_CHANNELS)
+  If stars 5–10: Submit Product Hunt
+  If stars ≥ 10: Post Show HN
+  Skip channels already tried: PREVIOUSLY_TRIED_CHANNELS
+  Distribution calendar: [paste relevant days from 7-day calendar if Phase 3 was run]
+
+TOP COMPETITOR LESSON: BENCHMARK_SUMMARY (from AUD-E)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+## WHAT NOT TO DO (IMPROVE MODE additions)
+
+- **Never replace a README wholesale in improve mode** — always show section-by-section diffs, apply only confirmed fixes
+- **Never create a v1.0.0 release on a repo that already has v2.x** — always detect the current version tag first
+- **Never add topics that already exist** — use PUT with the full deduplicated list, not repeated --add-topic
+- **Never skip the gap confirmation step** — the user must approve the punch list before any writes happen
+- **Never run all Phase 3 distribution agents unless user confirms** — distribution in improve mode is opt-in
+- **Never overwrite CHANGELOG.md** — it has history; always prepend a new version block and never touch existing entries
+- **Never recommend distribution channels the user has already tried** — check AUD-B previously_tried_channels and exclude them
+- **Never write tone-mismatched README fixes** — use AUD-C detected_tone and match it in every proposed change
+- **Never apply FIX-CONSISTENCY without showing the full version audit table first** — the user must see all mismatches before any file is touched
+- **Never enable branch protection if the repo only has one contributor** — check fork/contributor count first; protection can block solo developers
+- **Never run FIX-CHANGELOG without reading the existing file's format** — match the detected format exactly, never introduce a new style
+- **Never skip the broken link check re-verification** — confirm fixed links return 200 before reporting success
+- **Never report AUD-E competitor analysis without checking if the competitor repos are actually similar** — verify topic overlap, not just name similarity
+
+---
+
 ## WHAT NOT TO DO
 
-- **Never run Phase 1 agents sequentially** — they lose all time benefit
-- **Never skip name scoring** — even if user has a name, scoring may surface a better one
-- **Never skip Agent B's competitor research** — it directly shapes README quality
-- **Never omit the SVG `<img>` from README** — it must be the first element in the header div
-- **Never set `--homepage` to the repo URL itself** — only to Pages URL or a real external site
+- **Never use `gh api` for mutations without `gh_safe`** — concurrent PATCH/POST/GraphQL calls will hit GitHub secondary rate limits silently; use the wrapper for all write operations
+- **Never delete `.launch-state` mid-run** — it's the resume anchor; only delete it intentionally to start fresh
+- **Never run parallel phase agents sequentially** — kills the time benefit
+- **Never skip name scoring** — even with a preferred name, scoring may surface better
+- **Never skip Agent B in full mode** — competitor research directly shapes README quality
+- **Never omit the SVG `<img>` from README** — must be the first element in the header div
+- **Never use github-launch-agent content in the SVG or CHANGELOG** — Agent C and D must derive from the TARGET project, not from this skill
+- **Never set `--homepage` to the repo URL itself** — only to Pages URL or custom domain
 - **Never overwrite an existing SKILL.md** — check first
 - **Never stage `.env` or secret files** — stop and warn
-- **Never create the issue before creating the labels** — it fails
+- **Never create the issue before creating the labels** — GitHub rejects unknown labels
 - **Never use a generic good-first-issue** — tailor to the actual project category
-- **Never leave placeholder text in SVG or docs/index.html** — fill every field
-- **Never use relative dates in the 7-day calendar** — convert to absolute dates from 2026-06-18
-- **Never skip validation** — report success only after all checks pass
-- **Never post to Product Hunt before 5 stars** — PH with 0 stars is invisible on launch day
-- **Never submit the same copy to all 3 newsletters** — each has a distinct tone; use Agent O's tailored versions
-- **Never post the DEV.to article before the GitHub repo is live** — article links must resolve
-- **Never run Phase 3 agents sequentially** — they lose all time benefit (same rule as Phase 1)
+- **Never leave placeholder text in SVG, docs/index.html, CHANGELOG, or CONTRIBUTING** — fill every field
+- **Never use relative dates in the 7-day calendar** — compute absolute dates from TODAY
+- **Never skip validation** — report success only after all 7 checks pass
+- **Never post to Product Hunt before 5 stars** — zero-star launch is invisible
+- **Never submit identical copy to all 3 newsletters** — each has a distinct voice
+- **Never post the DEV.to article before the repo is live** — links must resolve
+- **Never write package-skill.yml for non-claude-skill projects** — it only makes sense for skills
+- **Never hardcode dates** — always derive from TODAY variable set at Step 0
