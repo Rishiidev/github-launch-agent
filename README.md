@@ -9,7 +9,7 @@
 [![Stars](https://img.shields.io/github/stars/Rishiidev/github-launch-agent?style=for-the-badge&color=gold)](https://github.com/Rishiidev/github-launch-agent/stargazers)
 [![CI](https://github.com/Rishiidev/github-launch-agent/actions/workflows/validate.yml/badge.svg)](https://github.com/Rishiidev/github-launch-agent/actions)
 [![License](https://img.shields.io/github/license/Rishiidev/github-launch-agent?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)](https://github.com/Rishiidev/github-launch-agent/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue?style=for-the-badge)](https://github.com/Rishiidev/github-launch-agent/releases)
 
 *Works in Claude Code · Cowork · Claude.ai — no CLI setup, one trigger phrase.*
 
@@ -46,11 +46,28 @@ repos that already converted visitors into stars.
 
 ## Install
 
-| Platform | Command |
-|----------|---------|
-| **Claude Code** | `/plugin install github:Rishiidev/github-launch-agent` |
-| **Cowork** | `/plugin install github:Rishiidev/github-launch-agent` |
-| **Claude.ai** | Download [`.skill` file](../../releases/latest) → import |
+### Claude Desktop App (recommended)
+
+1. Download [`github-launch-agent.skill`](https://github.com/Rishiidev/github-launch-agent/releases/latest/download/github-launch-agent.skill) from the latest release
+2. Open the Claude desktop app
+3. Go to **Skills** (left sidebar) → click **+** → **Upload skill**
+4. Drop in the `.skill` file
+5. Done — type any trigger phrase below to activate
+
+### Claude.ai (web)
+
+Same steps as above — Skills → + → Upload skill → drop the `.skill` file.
+
+### Claude Code CLI (terminal)
+
+```bash
+# From an interactive claude terminal session:
+/plugin marketplace add Rishiidev/github-launch-agent
+/plugin install github-launch-agent@github-launch-agent
+```
+
+> **Note:** `/plugin` only works inside an interactive `claude` terminal session.
+> It does **not** work in the desktop app, web app, or pasted into chat.
 
 ---
 
