@@ -1,17 +1,22 @@
 ---
 name: github-launch-agent
 description: >
-  Agentic GitHub launch pipeline with 12 parallel agents across 3 phases. Cuts
+  Agentic GitHub launch pipeline with 16 parallel agents across 3 phases. Cuts
   full launch time from 20 minutes to 4. Includes SEO name scoring (5 candidates
   ranked before touching anything), competitor README mining for research-backed
   copy, social preview SVG auto-embedded in README header, GitHub Pages landing
-  page with click-to-copy install, 5 scored repo description candidates, and a
-  7-day timed distribution calendar. Evolved from github-launch — same full 14-step
-  pipeline, parallel execution.
+  page with click-to-copy install, 5 scored repo description candidates, FUNDING.yml
+  sponsorship button, SECURITY.md, Discussions welcome post, demo recording storyboard,
+  Product Hunt launch draft, LinkedIn post, newsletter pitches (TLDR AI, The Rundown
+  AI, Ben's Bites), DEV.to article draft, and a 7-day timed distribution calendar.
+  Evolved from github-launch — same full pipeline, parallel execution, 4 more channels.
 
   TRIGGER when user says any of: "agentic github launch", "parallel github launch",
   "fast github launch", "launch agent", "github launch agent", "push to github fast",
   "agentic launch", "parallel launch", "launch with agents".
+
+  LITE MODE — skip competitor research and all distribution: "fast push", "quick push",
+  "push now", "lite launch". Runs Steps -1 through Pages only. Under 2 minutes.
 
   Also handles all base skill triggers (overrides github-launch if both installed):
   "push to github", "github launch", "publish skill", "make it viral on github",
@@ -22,7 +27,7 @@ description: >
 
 # GitHub Launch Agent — Parallel Pipeline
 
-**4 min. 12 agents. 3 parallel phases. Nothing skipped.**
+**4 min. 16 agents. 3 parallel phases. Nothing skipped.**
 
 ---
 
@@ -305,7 +310,7 @@ After writing, confirm the file path.
 ### Agent D — Supporting Files
 
 ```
-Write these 4 files for project REPO_NAME.
+Write these 6 files for project REPO_NAME.
 GitHub username: Rishiidev
 License: <from Step 0>
 Stack: <from Step 0>
@@ -401,7 +406,36 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Write all 4 files to <project-dir>. Confirm each file written.
+--- File 5: .github/FUNDING.yml ---
+github: [Rishiidev]
+# To add more funding options see:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-github-repository/displaying-a-sponsor-button-in-your-repository
+
+--- File 6: SECURITY.md ---
+# Security Policy
+
+## Reporting a Vulnerability
+
+If you discover a security vulnerability in this project, please **do not** open a
+public issue. Instead, open a [GitHub Issue](https://github.com/Rishiidev/REPO_NAME/issues/new)
+with the title prefix `[SECURITY]` — this keeps the report visible only to the
+maintainers until it is resolved.
+
+Please include:
+- Description of the vulnerability
+- Steps to reproduce
+- Potential impact
+
+We aim to respond within 72 hours and resolve confirmed issues within 7 days.
+
+## Scope
+
+This project is a Claude Code skill (prompt-based). Vulnerabilities include:
+- Prompt injection vectors in skill inputs
+- Instructions that could cause unintended data exposure or deletion
+- Safety check bypasses (e.g. skipping the secrets scan)
+
+Write all 6 files to <project-dir>. Confirm each file written.
 ```
 
 ---
@@ -610,7 +644,7 @@ mid-page still see it.
 | | `claude-github-launch` | **`REPO_NAME` (this)** |
 |-|----------------------|----------------------|
 | Time | ~15–20 min | **~4–6 min** |
-| Execution | Sequential (14 steps) | **Parallel (3 phases, 12 agents)** |
+| Execution | Sequential (14 steps) | **Parallel (3 phases, 16 agents)** |
 | README quality | From project files | **+ competitor research** |
 | Name | "I'll suggest one" | **5 scored candidates** |
 | Description | 1 generated | **5 scored, you pick** |
@@ -924,6 +958,70 @@ gh repo edit Rishiidev/REPO_NAME --homepage "https://Rishiidev.github.io/REPO_NA
 
 ---
 
+## STEP: Discussions Welcome Post (if Discussions enabled in Step 0)
+
+After GitHub Pages is set up, post a welcome thread to seed the community:
+
+```bash
+# Get the repo node ID needed for GraphQL
+REPO_NODE_ID=$(gh api graphql -f query='
+  query { repository(owner: "Rishiidev", name: "REPO_NAME") { id } }
+' --jq '.data.repository.id')
+
+# Get the Announcements category ID (or General if Announcements not found)
+CATEGORY_ID=$(gh api graphql -f query='
+  query {
+    repository(owner: "Rishiidev", name: "REPO_NAME") {
+      discussionCategories(first: 10) {
+        nodes { id name }
+      }
+    }
+  }
+' --jq '.data.repository.discussionCategories.nodes[] | select(.name == "Announcements") | .id // empty' | head -1)
+
+# Fallback to General if no Announcements category
+if [ -z "$CATEGORY_ID" ]; then
+  CATEGORY_ID=$(gh api graphql -f query='
+    query {
+      repository(owner: "Rishiidev", name: "REPO_NAME") {
+        discussionCategories(first: 10) {
+          nodes { id name }
+        }
+      }
+    }
+  ' --jq '.data.repository.discussionCategories.nodes[] | select(.name == "General") | .id' | head -1)
+fi
+
+gh api graphql -f query='
+  mutation($repoId: ID!, $catId: ID!, $title: String!, $body: String!) {
+    createDiscussion(input: {
+      repositoryId: $repoId
+      categoryId: $catId
+      title: $title
+      body: $body
+    }) {
+      discussion { url }
+    }
+  }
+' -f repoId="$REPO_NODE_ID" \
+  -f catId="$CATEGORY_ID" \
+  -f title="Welcome to REPO_NAME — share what you built" \
+  -f body="Welcome! 👋
+
+This is the place to share launches you completed with this skill, questions, edge cases you hit, or improvements you want to see.
+
+**To kick things off:**
+- What project did you launch?
+- How long did the full pipeline take?
+- Which parallel phase helped most?
+
+I'll reply to every post here."
+```
+
+If the GraphQL call fails (Discussions not yet propagated), skip and continue. Do not block on this step.
+
+---
+
 ## STEP: Validate Everything
 
 Run all checks. Fix failures before reporting success.
@@ -952,9 +1050,55 @@ Required passing state:
 
 ---
 
+## STEP: Demo Storyboard
+
+Generate a 30-second terminal demo script so the user can record a GIF later.
+Write to: `.github/record-demo.sh`
+
+```bash
+#!/usr/bin/env bash
+# record-demo.sh — 30-second terminal demo storyboard for REPO_NAME
+#
+# Tool: ttyrec / asciinema / Terminalizer (pick whichever is installed)
+# Recommended: asciinema rec demo.cast --cols 100 --rows 32 --idle-time-limit 2
+#
+# Scene 1 (0–5s): User types the trigger phrase
+#   Type: agentic github launch
+#   Pause 1s — show Claude processing
+#
+# Scene 2 (5–12s): Name scoring table appears
+#   Show the 5-candidate table with scores
+#   Highlight the recommended row
+#   User picks the recommended name
+#
+# Scene 3 (12–22s): Phase 1 starts — show 4 Agent calls firing simultaneously
+#   Show: "Spawning Agent A, B, C, D simultaneously..."
+#   Show agent terminal output trickling in from 4 boxes in parallel
+#
+# Scene 4 (22–28s): Final report header appears
+#   Show: ✓ Repo, ✓ Website, ✓ Topics, ✓ Release, ✓ Pages
+#
+# Scene 5 (28–30s): Install command block
+#   Show: /plugin install github:Rishiidev/REPO_NAME
+#
+# Recording tips:
+#   - Set font size 16, window 100x32
+#   - Use a dark terminal (matches #0d1117 GitHub theme)
+#   - Export: asciinema cat demo.cast | svg-term --out demo.svg
+#   - Convert GIF: agg demo.cast demo.gif --cols 100 --rows 32
+
+echo "Storyboard written. To record:"
+echo "  asciinema rec demo.cast --cols 100 --rows 32 --idle-time-limit 2"
+echo "  Then: agg demo.cast assets/demo.gif"
+```
+
+Write this file (fill REPO_NAME). Confirm written.
+
+---
+
 ## ═══════════════════════════════════════════════
 ## ═══ PARALLEL PHASE 3 ═══
-## Distribution: spawn all 4 content agents in ONE response.
+## Distribution: spawn all 8 content agents in ONE response.
 ## ═══════════════════════════════════════════════
 
 ---
@@ -1045,10 +1189,131 @@ Return: target repo, the markdown line, and the full PR draft.
 
 ---
 
+### Agent M — LinkedIn Post
+
+```
+Write a LinkedIn post announcing: Rishiidev/REPO_NAME
+Value prop: VALUE_PROP_FROM_AGENT_A
+Before state: BEFORE_STATE_FROM_AGENT_A
+GitHub: https://github.com/Rishiidev/REPO_NAME
+Install: /plugin install github:Rishiidev/REPO_NAME
+
+FORMAT:
+- Hook line (1 sentence, ends with a number or surprising contrast)
+- 2-line gap
+- 3–4 bullet points explaining the technical approach
+- 2-line gap
+- CTA: GitHub link + install command
+- 3–5 hashtags: #ClaudeAI #AITools #DeveloperTools + 1–2 specific to the stack
+
+Length: 150–250 words. Tone: technical professional. No "I am thrilled" or "excited to announce".
+Return ready-to-paste post.
+```
+
+---
+
+### Agent N — Product Hunt Launch Copy
+
+```
+Write Product Hunt launch assets for: Rishiidev/REPO_NAME
+Value prop: VALUE_PROP_FROM_AGENT_A
+Tagline: (derive from value_prop — ≤60 chars)
+GitHub: https://github.com/Rishiidev/REPO_NAME
+
+Provide:
+1. TAGLINE (≤60 chars): Compelling one-liner for the PH listing
+2. DESCRIPTION (260 chars max): What it does + who it's for + one concrete benefit
+3. FIRST COMMENT (200–300 words):
+   - Why you built it (honest, personal reason)
+   - What makes the parallel approach different (technical insight)
+   - One surprising result or edge case from building it
+   - Ask for specific feedback: "What step would you add to Phase 3?"
+4. GALLERY SLIDE CAPTIONS (3 slides):
+   - Slide 1: The problem (before state)
+   - Slide 2: The pipeline diagram (3 parallel phases)
+   - Slide 3: Final report / install command
+
+Return all 4 items clearly labeled.
+```
+
+---
+
+### Agent O — Newsletter Pitch Emails
+
+```
+Write outreach emails to 3 AI newsletters for: Rishiidev/REPO_NAME
+Value prop: VALUE_PROP_FROM_AGENT_A
+GitHub: https://github.com/Rishiidev/REPO_NAME
+
+Write separate, tailored pitches for:
+
+1. TLDR AI (tldr.tech/ai)
+   Subject: (≤60 chars, no exclamation marks)
+   Format: 1 paragraph, 60–80 words
+   Style: factual, data-driven, headline-friendly
+
+2. The Rundown AI (therundown.ai)
+   Subject: (≤60 chars)
+   Format: 2 short paragraphs, ~100 words total
+   Style: slightly more conversational, focus on the "what's new" angle
+
+3. Ben's Bites (bensbites.co)
+   Subject: (≤60 chars)
+   Format: 1 paragraph, 60–80 words, builder-focused angle
+   Style: casual, "someone just shipped..." energy
+
+Each pitch must include the GitHub URL and install command.
+No fluff. Editors get 100 pitches a day — be concrete and brief.
+Return all 3 emails clearly labeled.
+```
+
+---
+
+### Agent P — DEV.to Article Draft
+
+```
+Write a technical article for DEV.to about: Rishiidev/REPO_NAME
+Value prop: VALUE_PROP_FROM_AGENT_A
+GitHub: https://github.com/Rishiidev/REPO_NAME
+Install: /plugin install github:Rishiidev/REPO_NAME
+
+TITLE: (≤80 chars, include the number from value_prop)
+TAGS: 4 tags (e.g. claudeai, opensource, devtools, productivity)
+COVER IMAGE ALT: (descriptive alt text for the social-preview.svg)
+
+ARTICLE (700–900 words):
+
+## The Problem
+[before_state — concrete, familiar, 2-3 sentences]
+
+## The Approach: Parallel Agents
+[Explain the 3-phase parallel architecture. Include the pipeline diagram as a code block.]
+
+## What Gets Built
+[File tree showing the output. Each file with a one-line description.]
+
+## The Time Difference
+[Specific comparison: 4–6 min vs 15–20 min. Why parallel beats sequential here.]
+
+## Install and Try It
+\`\`\`
+/plugin install github:Rishiidev/REPO_NAME
+\`\`\`
+Then type: "agentic github launch"
+
+## What's Next
+[1–2 improvements on the roadmap or in open issues]
+
+End with a call to star the repo and open issues for feedback.
+Return the full article in Markdown, ready to paste into DEV.to.
+```
+
+---
+
 ## STEP: 7-Day Launch Calendar
 
-After all 4 distribution agents complete, generate this calendar using the content
-from Agents I–L. Convert all days to absolute dates from today (2026-06-18).
+After all 8 distribution agents complete, generate this calendar using the content
+from Agents I–P. Convert all days to absolute dates from today (2026-06-18).
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1059,6 +1324,8 @@ Day 0 — Today, 2026-06-18
   □ Pin repo on your GitHub profile (github.com → Customize profile)
   □ Add repo URL to your GitHub bio
   □ Star your own repo (seeds the star history chart)
+  □ Post LinkedIn [Agent M post below ↓] (9–10am ET)
+  □ Send newsletter pitches to TLDR AI, The Rundown AI, Ben's Bites [Agent O below ↓]
 
 Day 1 — 2026-06-19 (Post 9–11am ET for best r/ClaudeAI visibility)
   □ Post to r/ClaudeAI [Reddit post from Agent I below ↓]
@@ -1071,6 +1338,12 @@ Day 2 — 2026-06-20 (Post 8–10am or 5–6pm ET)
 Day 3 — 2026-06-21
   □ Open awesome-list PR [Agent L target + PR from below ↓]
   □ Post in any Claude/dev Discord you're in
+  □ Publish DEV.to article [Agent P draft below ↓]
+
+Day 4 — 2026-06-22
+  □ IF ≥5 stars: submit to Product Hunt [Agent N copy below ↓]
+     Best posting window: 12:01am PT (midnight Pacific)
+     PH URL: producthunt.com/posts/new
 
 Day 5 — 2026-06-23
   □ IF ≥10 stars: post Show HN [Agent K post below ↓]
@@ -1080,15 +1353,27 @@ Day 5 — 2026-06-23
 Day 7 — 2026-06-25
   □ Search "claude github launch" on GitHub — are you ranking?
   □ If <5 stars: try the next-best description candidate
-  □ If ≥20 stars: email 2–3 AI newsletter authors with your Show HN as context
+  □ If ≥20 stars: follow up with any newsletter replies
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LINKEDIN POST (Day 0):
+[Insert Agent M output here]
 
 REDDIT POST (Day 1 — paste to r/ClaudeAI):
 [Insert Agent I output here]
 
 TWITTER THREAD (Day 2):
 [Insert Agent J output here]
+
+DEV.to ARTICLE (Day 3):
+[Insert Agent P output here]
+
+PRODUCT HUNT (Day 4, after 5 stars):
+Tagline: [Agent N tagline]
+Description: [Agent N description]
+First comment: [Agent N first comment]
+Gallery captions: [Agent N slide captions]
 
 SHOW HN (Day 5, after 10 stars):
 [Insert Agent K output here]
@@ -1097,6 +1382,9 @@ AWESOME-LIST PR (Day 3):
 Target: [Agent L target repo]
 Markdown line: [Agent L line]
 PR body: [Agent L PR body]
+
+NEWSLETTER PITCHES (Day 0):
+[Insert Agent O pitches here — send all 3]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -1121,12 +1409,14 @@ PR body: [Agent L PR body]
 ✓ Pages:       live ~2min → Rishiidev.github.io/REPO_NAME
 ✓ Validation:  all checks passed
 
-AGENTS SPAWNED: 12 (A–L)
+AGENTS SPAWNED: 16 (A–P)
 PARALLEL PHASES: 3 (Phase 1: research/gen, Phase 2: config, Phase 3: distribution)
 ESTIMATED TIME: ~4–6 minutes
 
 LAUNCH ORDER (7-day calendar above):
-Reddit (Day 1) → X/Twitter (Day 2) → Awesome-list PR (Day 3) → HN (Day 5, after 10★)
+LinkedIn + Newsletters (Day 0) → Reddit (Day 1) → X/Twitter (Day 2)
+→ Awesome-list PR + DEV.to (Day 3) → Product Hunt (Day 4, after 5★)
+→ HN (Day 5, after 10★)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -1146,3 +1436,7 @@ Reddit (Day 1) → X/Twitter (Day 2) → Awesome-list PR (Day 3) → HN (Day 5, 
 - **Never leave placeholder text in SVG or docs/index.html** — fill every field
 - **Never use relative dates in the 7-day calendar** — convert to absolute dates from 2026-06-18
 - **Never skip validation** — report success only after all checks pass
+- **Never post to Product Hunt before 5 stars** — PH with 0 stars is invisible on launch day
+- **Never submit the same copy to all 3 newsletters** — each has a distinct tone; use Agent O's tailored versions
+- **Never post the DEV.to article before the GitHub repo is live** — article links must resolve
+- **Never run Phase 3 agents sequentially** — they lose all time benefit (same rule as Phase 1)

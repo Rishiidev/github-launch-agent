@@ -15,7 +15,7 @@
 
 </div>
 
-> The agentic evolution of `claude-github-launch`. Same full pipeline — 12 parallel agents across 3 phases replace sequential steps, cutting time from 20 minutes to 4 while improving README quality through live competitor research.
+> The agentic evolution of `claude-github-launch`. Same full pipeline — 16 parallel agents across 3 phases replace sequential steps, cutting time from 20 minutes to 4 while improving README quality through live competitor research.
 
 ---
 
@@ -66,7 +66,7 @@ repos that already converted visitors into stars.
 | | `claude-github-launch` | **`github-launch-agent` (this)** |
 |-|----------------------|--------------------------------|
 | Time | ~15–20 min | **~4–6 min** |
-| Execution | Sequential, 14 steps | **Parallel, 3 phases, 12 agents** |
+| Execution | Sequential, 14 steps | **Parallel, 3 phases, 16 agents** |
 | README quality | From your project files | **+ competitor README research** |
 | Name decision | "I'll suggest one" | **5 candidates scored, ranked** |
 | Repo description | 1 generated | **5 scored, you pick** |
@@ -87,7 +87,7 @@ STEP  1   Pre-flight          auth · secrets · git state
   Agent A   Project intelligence   value prop · trigger · platforms
   Agent B   Competitor research    topics · README patterns · descriptions
   Agent C   Social preview SVG     generated + embedded in README
-  Agent D   Supporting files       CHANGELOG · .gitignore · CONTRIBUTING · LICENSE
+  Agent D   Supporting files       CHANGELOG · .gitignore · CONTRIBUTING · LICENSE · FUNDING.yml · SECURITY.md
 ══════════════════════════════════════════════════════
 
   SYNTHESIS   Merge → README (SVG embedded) · plugin.json · marketplace.json · CI workflow
@@ -101,14 +101,20 @@ STEP  1   Pre-flight          auth · secrets · git state
   Agent H   Release                v1.0.0 + .skill attachment
 ══════════════════════════════════════════════════════
 
-  PAGES     docs/index.html generated + GitHub Pages enabled
-  VALIDATE  all artifacts checked
+  PAGES       docs/index.html generated + GitHub Pages enabled
+  DISCUSSIONS Seeded welcome post
+  STORYBOARD  .github/record-demo.sh — 30s terminal demo script
+  VALIDATE    all artifacts checked
 
 ══════════════════ PARALLEL PHASE 3 ══════════════════
   Agent I   Reddit post            r/ClaudeAI, ready to paste
   Agent J   X/Twitter thread       4-tweet thread, ready to paste
   Agent K   HN Show HN             title + body, ready to post
   Agent L   Awesome-list PR        target found, markdown line + PR drafted
+  Agent M   LinkedIn post          technical, ready to paste
+  Agent N   Product Hunt copy      tagline + description + first comment + gallery
+  Agent O   Newsletter pitches     tailored for TLDR AI, The Rundown AI, Ben's Bites
+  Agent P   DEV.to article         700-900 word technical article, ready to publish
 ══════════════════════════════════════════════════════
 
   CALENDAR   7-day plan with absolute dates and posting windows
@@ -141,9 +147,11 @@ your-project/
 ├── skills/<name>/
 │   └── SKILL.md                 ← never overwritten if exists
 ├── .github/
+│   ├── FUNDING.yml              ← Sponsor button on repo page
 │   ├── ISSUE_TEMPLATE/
 │   │   ├── feature-request.yml
 │   │   └── bug-report.yml
+│   ├── record-demo.sh           ← 30-second demo storyboard + asciinema script
 │   └── workflows/
 │       └── validate.yml         ← CI badge from day 1
 ├── assets/
@@ -153,6 +161,7 @@ your-project/
 ├── README.md                    ← SVG hero + competitor-benchmarked structure
 ├── CHANGELOG.md                 ← real date, v1.0.0
 ├── CONTRIBUTING.md
+├── SECURITY.md                  ← vulnerability reporting via GitHub Issues
 ├── LICENSE
 └── .gitignore                   ← language-specific
 ```
@@ -196,6 +205,26 @@ Enabled via GitHub API — no manual steps.
 | `github everything` | Full parallel pipeline |
 | `github launch` | Full parallel pipeline |
 | `publish skill` | Full parallel pipeline |
+
+---
+
+## Demo
+
+<!-- GIF goes here once recorded. Run .github/record-demo.sh for the storyboard. -->
+<!-- asciinema rec demo.cast --cols 100 --rows 32 --idle-time-limit 2 -->
+<!-- agg demo.cast assets/demo.gif && then add: -->
+<!-- ![demo](assets/demo.gif) -->
+
+*Recording guide: [`.github/record-demo.sh`](.github/record-demo.sh)*
+
+---
+
+## See Also
+
+| Skill | What it does | When to use |
+|-------|-------------|-------------|
+| [claude-github-launch](https://github.com/Rishiidev/claude-github-launch) | Sequential 14-step launch pipeline | Prefer step-by-step control, 15–20 min |
+| **github-launch-agent** (this) | 16-agent parallel pipeline | Want it done in 4 min with research-backed output |
 
 ---
 
