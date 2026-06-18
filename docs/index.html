@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="4 parallel agents cut the full GitHub launch pipeline from 20 minutes to 4. Research-backed README, SEO name scoring, auto-embedded social preview, and 7-day distribution calendar.">
+  <meta property="og:title" content="github-launch-agent — Full GitHub Launch in 4 Minutes">
+  <meta property="og:description" content="4 parallel agents. Full GitHub launch in 4 minutes.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/Rishiidev/github-launch-agent/main/assets/social-preview.svg">
+  <title>github-launch-agent — Full GitHub Launch in 4 Minutes</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0d1117; color: #e6edf3; font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; }
+    a { color: inherit; }
+
+    .hero { max-width: 960px; margin: 0 auto; padding: 80px 40px 60px; }
+    .hero-img { width: 100%; border-radius: 12px; margin-bottom: 52px; display: block; }
+    h1 { font-size: 52px; font-weight: 800; margin-bottom: 16px; }
+    .tagline { font-size: 22px; color: #8b949e; margin-bottom: 44px; max-width: 680px; }
+
+    .install-section { margin-bottom: 52px; }
+    .install-label { font-size: 12px; color: #484f58; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
+    .install-box {
+      background: #161b22; border-radius: 10px; padding: 22px 26px;
+      border-left: 4px solid #f0883e; cursor: pointer;
+      transition: box-shadow 0.2s, border-color 0.2s;
+      max-width: 680px;
+    }
+    .install-box:hover { box-shadow: 0 0 0 1px #f0883e60; }
+    .install-box pre { font-family: 'Courier New', Courier, monospace; font-size: 18px; color: #f0883e; white-space: nowrap; overflow-x: auto; }
+    .copy-hint { font-size: 12px; color: #484f58; margin-top: 10px; transition: color 0.2s; }
+
+    .btns { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 80px; }
+    .btn-primary {
+      background: #f0883e; color: #0d1117; padding: 14px 32px; border-radius: 8px;
+      font-weight: 700; font-size: 17px; text-decoration: none; display: inline-block;
+      transition: opacity 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary {
+      color: #8b949e; padding: 14px 24px; font-size: 17px; text-decoration: none;
+      display: inline-block; border: 1px solid #30363d; border-radius: 8px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-secondary:hover { border-color: #8b949e; color: #e6edf3; }
+
+    .features { max-width: 960px; margin: 0 auto; padding: 0 40px 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .feature { background: #161b22; border-radius: 10px; padding: 28px; border-top: 2px solid transparent; }
+    .feature.orange { border-top-color: #f0883e; }
+    .feature.blue   { border-top-color: #58a6ff; }
+    .feature.green  { border-top-color: #3fb950; }
+    .feature.purple { border-top-color: #d2a8ff; }
+    .feature h3 { font-size: 18px; font-weight: 600; margin-bottom: 10px; }
+    .feature p { color: #8b949e; font-size: 15px; line-height: 1.7; }
+
+    .compare { max-width: 960px; margin: 0 auto; padding: 0 40px 80px; }
+    .compare h2 { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th { text-align: left; padding: 12px 16px; background: #161b22; color: #8b949e; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+    td { padding: 12px 16px; border-bottom: 1px solid #21262d; }
+    td strong { color: #f0883e; }
+    tr:last-child td { border-bottom: none; }
+
+    footer { text-align: center; padding: 48px 40px; color: #484f58; font-size: 14px; border-top: 1px solid #161b22; }
+    footer a { color: #8b949e; text-decoration: none; }
+    footer a:hover { color: #e6edf3; }
+
+    @media (max-width: 720px) {
+      .hero { padding: 40px 24px 40px; }
+      h1 { font-size: 36px; }
+      .tagline { font-size: 18px; }
+      .install-box pre { font-size: 14px; }
+      .features { grid-template-columns: 1fr; }
+      .compare, .features { padding-left: 24px; padding-right: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <img
+      class="hero-img"
+      src="https://raw.githubusercontent.com/Rishiidev/github-launch-agent/main/assets/social-preview.svg"
+      alt="github-launch-agent — 4 parallel agents, full GitHub launch in 4 minutes"
+    >
+    <h1>github-launch-agent</h1>
+    <p class="tagline">4 parallel agents cut the full GitHub launch pipeline from 20 minutes to 4. Research-backed README. SEO name scoring. GitHub Pages. 7-day distribution calendar.</p>
+
+    <div class="install-section">
+      <div class="install-label">Install in Claude Code</div>
+      <div class="install-box" onclick="copyInstall(this)" title="Click to copy">
+        <pre>/plugin install github:Rishiidev/github-launch-agent</pre>
+        <div class="copy-hint">Click to copy</div>
+      </div>
+    </div>
+
+    <div class="btns">
+      <a href="https://github.com/Rishiidev/github-launch-agent" class="btn-primary">⭐ Star on GitHub</a>
+      <a href="https://github.com/Rishiidev/github-launch-agent#readme" class="btn-secondary">View docs →</a>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feature orange">
+      <h3>⚡ 3 Parallel Phases</h3>
+      <p>12 agents across 3 phases. Phase 1: research, SVG, topics, and files run simultaneously. Phase 2: post-push config. Phase 3: all 4 distribution drafts.</p>
+    </div>
+    <div class="feature blue">
+      <h3>🎯 SEO Name Scoring</h3>
+      <p>5 candidates scored on search saturation, keyword match, memorability, and category signal — ranked before any other input is collected.</p>
+    </div>
+    <div class="feature green">
+      <h3>🔬 Competitor Research</h3>
+      <p>Agent B mines the top 3 similar repos' READMEs: headline format, install placement, CTA position, value prop style. Your README is written from a benchmark.</p>
+    </div>
+    <div class="feature purple">
+      <h3>📅 7-Day Calendar</h3>
+      <p>Not a list of platforms — a timed plan. Reddit on Day 1, X/Twitter Day 2, awesome-list Day 3, HN on Day 5 only after reaching 10 stars.</p>
+    </div>
+  </div>
+
+  <div class="compare">
+    <h2>Base vs Agentic</h2>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>claude-github-launch</th>
+          <th>github-launch-agent</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Time</td><td>~15–20 min</td><td><strong>~4–6 min</strong></td></tr>
+        <tr><td>Execution</td><td>Sequential, 14 steps</td><td><strong>Parallel, 3 phases, 12 agents</strong></td></tr>
+        <tr><td>README quality</td><td>From project files</td><td><strong>+ competitor research</strong></td></tr>
+        <tr><td>Name decision</td><td>"I'll suggest one"</td><td><strong>5 scored candidates</strong></td></tr>
+        <tr><td>Repo description</td><td>1 generated</td><td><strong>5 scored, you pick</strong></td></tr>
+        <tr><td>Social preview</td><td>Generated + manual upload</td><td><strong>Auto-embedded in README</strong></td></tr>
+        <tr><td>GitHub Pages</td><td>✗</td><td><strong>✓ landing page + homepage</strong></td></tr>
+        <tr><td>Distribution</td><td>Ready-to-paste text</td><td><strong>Text + 7-day timed calendar</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    MIT License &nbsp;·&nbsp;
+    <a href="https://github.com/Rishiidev/github-launch-agent">GitHub</a> &nbsp;·&nbsp;
+    Built by <a href="https://github.com/Rishiidev">Rishiidev</a>
+  </footer>
+
+  <script>
+    function copyInstall(el) {
+      const cmd = el.querySelector('pre').textContent.trim();
+      navigator.clipboard.writeText(cmd).then(() => {
+        const hint = el.querySelector('.copy-hint');
+        hint.textContent = '✓ Copied to clipboard';
+        hint.style.color = '#3fb950';
+        setTimeout(() => {
+          hint.textContent = 'Click to copy';
+          hint.style.color = '';
+        }, 2000);
+      }).catch(() => {
+        const hint = el.querySelector('.copy-hint');
+        hint.textContent = 'Copy: ' + cmd;
+      });
+    }
+  </script>
+</body>
+</html>

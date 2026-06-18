@@ -1,0 +1,52 @@
+name: Bug Report
+description: A step failed or produced wrong output
+labels: ["bug"]
+body:
+  - type: input
+    id: trigger
+    attributes:
+      label: Trigger phrase used
+      placeholder: e.g. "agentic github launch"
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Which phase or agent failed
+      options:
+        - Step -1 (Name scoring)
+        - Step 0–1 (Inputs / Pre-flight)
+        - Agent A (Project intelligence)
+        - Agent B (Competitor research)
+        - Agent C (Social preview SVG)
+        - Agent D (Supporting files)
+        - Synthesis (README / plugin.json)
+        - Git ops / repo creation
+        - Agent E (Topics)
+        - Agent F (Discussions)
+        - Agent G (Labels / issue)
+        - Agent H (Release)
+        - GitHub Pages
+        - Validation
+        - Agent I–L (Distribution)
+        - 7-day calendar
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected output
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual output or error
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Project type and stack
+      placeholder: e.g. "Claude skill, no prior git init"

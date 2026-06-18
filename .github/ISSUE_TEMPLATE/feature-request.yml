@@ -1,0 +1,43 @@
+name: Feature Request
+description: Suggest an improvement to the skill pipeline
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What step or output could be better?
+      description: Which phase, agent, or output quality needs improvement?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed change
+      description: Before prompt / behavior vs after. Show both.
+    validations:
+      required: true
+  - type: textarea
+    id: verify
+    attributes:
+      label: How to verify the improvement
+      description: What output comparison proves this is better?
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Affected phase
+      options:
+        - Step -1 (Name scoring)
+        - Step 0–1 (Inputs / Pre-flight)
+        - Parallel Phase 1 (Research / SVG / Files)
+        - Synthesis (README / plugin.json)
+        - Git ops
+        - Parallel Phase 2 (Post-push config)
+        - GitHub Pages
+        - Validation
+        - Parallel Phase 3 (Distribution)
+        - 7-day calendar
+        - Other
+    validations:
+      required: true

@@ -1,0 +1,15 @@
+.DS_Store
+*.log
+*.zip
+*.skill.bak
+.env
+.env.*
+*.pem
+*.key
+secrets*
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
