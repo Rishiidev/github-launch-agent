@@ -15,7 +15,7 @@ description: >
 
   Also handles all base skill triggers (overrides github-launch if both installed):
   "push to github", "github launch", "publish skill", "make it viral on github",
-  "github everything", "full github setup", "github seo".
+  "github everything", "full github setup", "github seo", "launch my skill", "ship to github", "github release setup".
 
   Works for: Claude Code skills (.skill files), plugins, Node/Python/Go/Rust/any repo.
 ---
