@@ -1,0 +1,35 @@
+name: Package skill
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find SKILL.md
+        id: find
+        run: |
+          SKILL=$(find skills -name "SKILL.md" | head -1)
+          NAME=$(basename "$(dirname "$SKILL")")
+          echo "skill_path=$SKILL" >> "$GITHUB_OUTPUT"
+          echo "skill_name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Package .skill file
+        run: |
+          mkdir -p /tmp/skill-pkg/skill-pkg/${{ steps.find.outputs.skill_name }}
+          cp "${{ steps.find.outputs.skill_path }}" \
+             /tmp/skill-pkg/skill-pkg/${{ steps.find.outputs.skill_name }}/
+          cd /tmp/skill-pkg
+          zip -r "${{ steps.find.outputs.skill_name }}.skill" skill-pkg/
+          cp "${{ steps.find.outputs.skill_name }}.skill" "$GITHUB_WORKSPACE/"
+
+      - name: Upload .skill to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find.outputs.skill_name }}.skill

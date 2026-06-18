@@ -93,11 +93,16 @@ Ask all of these in ONE message after the name is chosen:
    → Your repo gets a free website at Rishiidev.github.io/REPO_NAME
    → Sets this URL as the repo homepage (indexed by Google, shareable)
 6. GitHub Discussions? (Default: yes)
+7. Remove "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>" from commit
+   messages? (Default: no — keep it for transparency)
+8. Custom domain for GitHub Pages? (e.g. tools.yourdomain.com)
+   → Leave blank to use Rishiidev.github.io/REPO_NAME
+   → If provided: writes docs/CNAME + prints DNS setup instructions
 ```
 
 Note: social preview SVG is always generated — no need to ask.
 
-Store all 6 answers. Do not ask again.
+Store all 8 answers. Do not ask again.
 
 ---
 
@@ -310,7 +315,7 @@ After writing, confirm the file path.
 ### Agent D — Supporting Files
 
 ```
-Write these 6 files for project REPO_NAME.
+Write these 7 files for project REPO_NAME.
 GitHub username: Rishiidev
 License: <from Step 0>
 Stack: <from Step 0>
@@ -435,7 +440,33 @@ This project is a Claude Code skill (prompt-based). Vulnerabilities include:
 - Instructions that could cause unintended data exposure or deletion
 - Safety check bypasses (e.g. skipping the secrets scan)
 
-Write all 6 files to <project-dir>. Confirm each file written.
+--- File 7: .github/PULL_REQUEST_TEMPLATE.md ---
+## What this changes
+
+<!-- Which step, agent, or file changed? Be specific: "Agent B prompt", "Step 0 Q3", "validate.yml" -->
+
+## Why
+
+<!-- What problem does this solve, or what output does it improve? -->
+
+## Before / after
+
+Before:
+(paste old prompt or output here)
+
+After:
+(paste new output showing the improvement)
+
+## Checklist
+
+- [ ] PARALLEL PHASE structure unchanged (or explain why it changed)
+- [ ] SVG embedding rule in README untouched
+- [ ] Secrets scan still runs in Step 1
+- [ ] SKILL.md not overwritten if it already exists
+- [ ] Tested: trigger phrase activates the skill correctly
+- [ ] No placeholder text left unfilled in any generated file
+
+Write all 7 files to <project-dir>. Confirm each file written.
 ```
 
 ---
@@ -573,6 +604,40 @@ body:
       required: true
 ```
 
+### 10. Write `.github/workflows/package-skill.yml`
+```yaml
+name: Package skill
+on:
+  release:
+    types: [created]
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Find SKILL.md
+        id: find
+        run: |
+          SKILL=$(find skills -name "SKILL.md" | head -1)
+          NAME=$(basename "$(dirname "$SKILL")")
+          echo "skill_path=$SKILL" >> "$GITHUB_OUTPUT"
+          echo "skill_name=$NAME" >> "$GITHUB_OUTPUT"
+      - name: Package .skill file
+        run: |
+          mkdir -p /tmp/skill-pkg/skill-pkg/${{ steps.find.outputs.skill_name }}
+          cp "${{ steps.find.outputs.skill_path }}" \
+             /tmp/skill-pkg/skill-pkg/${{ steps.find.outputs.skill_name }}/
+          cd /tmp/skill-pkg
+          zip -r "${{ steps.find.outputs.skill_name }}.skill" skill-pkg/
+          cp "${{ steps.find.outputs.skill_name }}.skill" "$GITHUB_WORKSPACE/"
+      - name: Upload .skill to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find.outputs.skill_name }}.skill
+```
+
 ### 9. Write README.md
 
 Apply competitor_patterns from Agent B. Use before_state/after_state from Agent A.
@@ -692,7 +757,12 @@ git -C <dir> add -A
 # Commit message:
 # No prior commits → "Initial release: REPO_NAME v1.0.0"
 # Has prior commits → "Add GitHub launch assets: parallel pipeline v1.0.0"
-git -C <dir> commit -m "<correct message>"
+# If Step 0 Q7 = keep co-author (default):
+git -C <dir> commit -m "<correct message>
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+# If Step 0 Q7 = remove co-author:
+# git -C <dir> commit -m "<correct message>"
 gh repo create REPO_NAME --public \
   --description "REPO_DESC" \
   --source <dir> \
@@ -836,6 +906,14 @@ After PARALLEL PHASE 2 completes:
 
 **1. Write `docs/index.html`** using the template below (fill ALL placeholders):
 
+Placeholder rules before writing:
+- `REPO_NAME` → chosen repo name everywhere
+- `VALUE_PROP_FROM_AGENT_A` → full value prop sentence from Agent A
+- `HERO_HEADLINE` → short punchy version: for time savings use "[before] → [after]." (e.g. "20 min → 4."); for other value props extract the strongest 2–4 word impact phrase
+- `CATEGORY_LABEL` → from Agent A's category field: claude-skill → "Claude Code skill", node-lib → "Node.js library", cli-tool → "CLI tool", etc.
+- `MAIN_TRIGGER` → main_trigger from Agent A
+- No placeholder text left in the written file.
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -843,94 +921,164 @@ After PARALLEL PHASE 2 completes:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="VALUE_PROP_FROM_AGENT_A">
-  <title>REPO_NAME — 5-WORD-VALUE-PROP</title>
+  <meta property="og:title" content="REPO_NAME">
+  <meta property="og:description" content="VALUE_PROP_FROM_AGENT_A">
+  <meta property="og:image" content="https://raw.githubusercontent.com/Rishiidev/REPO_NAME/main/assets/social-preview.svg">
+  <title>REPO_NAME</title>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{background:#0d1117;color:#e6edf3;font-family:system-ui,sans-serif;line-height:1.6}
-    .hero{max-width:960px;margin:0 auto;padding:80px 40px 60px}
-    .hero img{width:100%;border-radius:12px;margin-bottom:48px;display:block}
-    h1{font-size:52px;font-weight:800;margin-bottom:16px}
-    .tagline{font-size:22px;color:#8b949e;margin-bottom:40px;max-width:700px}
-    .install-wrap{margin-bottom:48px}
-    .install-label{font-size:13px;color:#484f58;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
-    .install-box{background:#161b22;border-radius:8px;padding:20px 24px;border-left:4px solid #f0883e;cursor:pointer;transition:border-color .2s}
-    .install-box:hover{border-color:#f0883e;box-shadow:0 0 0 1px #f0883e40}
-    .install-box pre{font-family:'Courier New',monospace;font-size:18px;color:#f0883e;margin:0;white-space:nowrap}
-    .copy-hint{font-size:12px;color:#484f58;margin-top:8px}
-    .btns{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:80px}
-    .btn-primary{background:#f0883e;color:#0d1117;padding:14px 32px;border-radius:8px;font-weight:700;font-size:17px;text-decoration:none;display:inline-block}
-    .btn-secondary{color:#8b949e;padding:14px 24px;font-size:17px;text-decoration:none;display:inline-block;border:1px solid #30363d;border-radius:8px}
-    .features{max-width:960px;margin:0 auto;padding:0 40px 80px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
-    .feature{background:#161b22;border-radius:8px;padding:28px;border-top:2px solid transparent}
-    .feature.orange{border-top-color:#f0883e}
-    .feature.blue{border-top-color:#58a6ff}
-    .feature.green{border-top-color:#3fb950}
-    .feature.purple{border-top-color:#d2a8ff}
-    .feature h3{font-size:18px;margin-bottom:10px}
-    .feature p{color:#8b949e;font-size:15px}
-    footer{text-align:center;padding:40px;color:#484f58;font-size:14px;border-top:1px solid #161b22}
-    footer a{color:#8b949e;text-decoration:none}
-    @media(max-width:700px){.features{grid-template-columns:1fr}.hero{padding:40px 24px 40px}h1{font-size:36px}.install-box pre{font-size:14px;overflow-x:auto}}
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;--subtle:#21262d;--text:#e6edf3;--muted:#8b949e;--faint:#484f58;--orange:#f0883e;--blue:#58a6ff;--green:#3fb950;--purple:#d2a8ff}
+    html{scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;line-height:1.6}
+    a{color:inherit;text-decoration:none}
+    nav{position:sticky;top:0;z-index:100;background:rgba(13,17,23,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--subtle);height:56px;padding:0 32px;display:flex;align-items:center;justify-content:space-between}
+    .nav-brand{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:600}
+    .nav-dot{width:8px;height:8px;border-radius:50%;background:var(--orange);flex-shrink:0}
+    .nav-links{display:flex;gap:24px}
+    .nav-links a{font-size:14px;color:var(--muted);transition:color .15s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-star{background:var(--orange);color:#0d1117;padding:7px 16px;border-radius:7px;font-size:14px;font-weight:600;transition:opacity .15s}
+    .nav-star:hover{opacity:.88}
+    .hero{max-width:900px;margin:0 auto;padding:80px 32px 56px}
+    .hero-eyebrow{font-size:12px;color:var(--orange);text-transform:uppercase;letter-spacing:2px;margin-bottom:20px}
+    .hero-headline{font-size:clamp(56px,10vw,96px);font-weight:800;line-height:.95;letter-spacing:-2px;margin-bottom:24px}
+    .hero-headline .arrow{color:var(--orange)}
+    .hero-sub{font-size:18px;color:var(--muted);max-width:460px;margin-bottom:40px;line-height:1.65}
+    .terminal{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;max-width:560px}
+    .t-bar{background:var(--bg3);padding:10px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--subtle)}
+    .dot{width:11px;height:11px;border-radius:50%}
+    .dot-r{background:#e05252}.dot-y{background:#e0a952}.dot-g{background:#52c452}
+    .t-title{font-size:12px;color:var(--faint);margin:0 auto;font-family:'Courier New',monospace}
+    .t-body{padding:18px 20px}
+    .t-line{font-family:'Courier New',monospace;font-size:clamp(13px,2.5vw,16px)}
+    .t-prompt{color:var(--faint)}.t-cmd{color:var(--orange)}.t-out{color:var(--green);margin-top:6px;font-size:13px}
+    .t-actions{display:flex;align-items:center;gap:10px;margin-top:14px}
+    .t-copy{background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:0 14px;height:40px;min-width:44px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color .15s,color .15s;font-family:system-ui,sans-serif}
+    .t-copy:hover{border-color:var(--muted);color:var(--text)}
+    .t-hint{font-size:12px;color:var(--faint)}
+    .section{max-width:900px;margin:0 auto;padding:0 32px 64px}
+    .section-head{margin-bottom:28px}
+    .section-head h2{font-size:24px;font-weight:700;margin-bottom:6px}
+    .section-head p{font-size:15px;color:var(--muted)}
+    .timeline{display:flex;flex-direction:column;gap:10px;margin-bottom:32px}
+    .t-row{display:flex;align-items:center;gap:14px}
+    .t-label{font-size:12px;color:var(--muted);font-family:'Courier New',monospace;width:84px;text-align:right;flex-shrink:0}
+    .t-track{flex:1;height:32px;background:var(--bg2);border-radius:6px;position:relative;overflow:hidden;border:1px solid var(--subtle)}
+    .t-time{font-size:12px;font-family:'Courier New',monospace;width:52px;flex-shrink:0}
+    .seq-bar{position:absolute;inset:0;display:flex;gap:2px;padding:3px}
+    .seq-seg{flex:1;background:var(--bg3);border-radius:3px}
+    .par-bar{position:absolute;inset:4px;display:flex;gap:3px}
+    .par-seg{height:100%;border-radius:3px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-family:'Courier New',monospace;font-weight:600;white-space:nowrap}
+    .agents-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .agent-card{background:var(--bg2);border:1px solid var(--subtle);border-radius:8px;padding:13px 15px;display:flex;gap:10px}
+    .agent-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+    .agent-name{font-size:13px;font-weight:600;margin-bottom:2px}
+    .agent-desc{font-size:12px;color:var(--muted)}
+    .output-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .output-card{background:var(--bg2);border:1px solid var(--subtle);border-radius:10px;padding:22px}
+    .output-title{font-size:15px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .output-dot{width:7px;height:7px;border-radius:50%}
+    .checklist{display:flex;flex-direction:column;gap:9px}
+    .check-item{font-size:13px;color:var(--muted);display:flex;gap:8px;line-height:1.45}
+    .check-icon{color:var(--green);flex-shrink:0}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th{text-align:left;padding:10px 14px;background:var(--bg2);color:var(--faint);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--subtle)}
+    td{padding:11px 14px;border-bottom:1px solid var(--subtle)}
+    td strong{color:var(--orange)}
+    tr:last-child td{border-bottom:none}
+    footer{border-top:1px solid var(--subtle)}
+    .footer-inner{max-width:900px;margin:0 auto;padding:32px;display:flex;align-items:center;justify-content:space-between}
+    .footer-left{font-size:13px;color:var(--faint)}
+    .footer-left a{color:var(--muted);transition:color .15s}
+    .footer-left a:hover{color:var(--text)}
+    .footer-star{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:8px 18px;border-radius:7px;font-size:13px;transition:border-color .15s,color .15s}
+    .footer-star:hover{border-color:var(--muted);color:var(--text)}
+    .sticky-cta{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:14px 20px;align-items:center;justify-content:space-between;z-index:50}
+    .sticky-cta-text{font-size:14px;color:var(--muted)}
+    .sticky-cta-btn{background:var(--orange);color:#0d1117;padding:10px 20px;border-radius:7px;font-size:14px;font-weight:600;white-space:nowrap}
+    @media(max-width:720px){nav{padding:0 20px}.nav-links{display:none}.hero{padding:48px 20px 40px}.section{padding-left:20px;padding-right:20px}.agents-grid,.output-grid{grid-template-columns:1fr}.footer-inner{padding:24px 20px;flex-direction:column;gap:16px;text-align:center}.sticky-cta{display:flex}body{padding-bottom:72px}}
   </style>
 </head>
 <body>
-  <div class="hero">
-    <img src="https://raw.githubusercontent.com/Rishiidev/REPO_NAME/main/assets/social-preview.svg"
-         alt="REPO_NAME — VALUE_PROP">
-    <h1>REPO_NAME</h1>
-    <p class="tagline">VALUE_PROP_FROM_AGENT_A</p>
-    <div class="install-wrap">
-      <div class="install-label">Install in Claude Code</div>
-      <div class="install-box" onclick="copyInstall(this)" title="Click to copy">
-        <pre id="install-cmd">/plugin install github:Rishiidev/REPO_NAME</pre>
-        <div class="copy-hint">Click to copy</div>
+<nav>
+  <div class="nav-brand"><div class="nav-dot"></div>REPO_NAME</div>
+  <div class="nav-links">
+    <a href="#install">install</a>
+    <a href="#pipeline">how it works</a>
+    <a href="https://github.com/Rishiidev/REPO_NAME#readme">docs</a>
+    <a href="https://github.com/Rishiidev/REPO_NAME">GitHub</a>
+  </div>
+  <a href="https://github.com/Rishiidev/REPO_NAME" class="nav-star">⭐ Star</a>
+</nav>
+<section class="hero" id="install">
+  <div class="hero-eyebrow">CATEGORY_LABEL</div>
+  <div class="hero-headline">HERO_HEADLINE</div>
+  <p class="hero-sub">VALUE_PROP_FROM_AGENT_A</p>
+  <div class="terminal">
+    <div class="t-bar">
+      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+      <div class="t-title">claude — bash</div>
+    </div>
+    <div class="t-body">
+      <div class="t-line"><span class="t-prompt">$ </span><span class="t-cmd">/plugin install github:Rishiidev/REPO_NAME</span></div>
+      <div class="t-line t-out">✓ Installed. Type "MAIN_TRIGGER" to start.</div>
+      <div class="t-actions">
+        <button class="t-copy" id="copy-btn" onclick="copyInstall()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+        <span class="t-hint">Works in Claude Code · Cowork · Claude.ai</span>
       </div>
     </div>
-    <div class="btns">
-      <a href="https://github.com/Rishiidev/REPO_NAME" class="btn-primary">⭐ Star on GitHub</a>
-      <a href="https://github.com/Rishiidev/REPO_NAME#readme" class="btn-secondary">View docs →</a>
+  </div>
+</section>
+<section class="section" id="pipeline">
+  <div class="section-head"><h2>What gets built</h2><p>VALUE_PROP_FROM_AGENT_A</p></div>
+  <div class="output-grid">
+    <div class="output-card">
+      <div class="output-title"><div class="output-dot" style="background:var(--orange)"></div>Files created</div>
+      <div class="checklist">
+        <div class="check-item"><span class="check-icon">✓</span>README with competitor-benchmarked structure</div>
+        <div class="check-item"><span class="check-icon">✓</span>Social preview SVG embedded as hero image</div>
+        <div class="check-item"><span class="check-icon">✓</span>GitHub Pages site with click-to-copy install</div>
+        <div class="check-item"><span class="check-icon">✓</span>20 SEO topics + tailored good-first-issue</div>
+        <div class="check-item"><span class="check-icon">✓</span>Release v1.0.0 with .skill file attached</div>
+        <div class="check-item"><span class="check-icon">✓</span>SECURITY.md · FUNDING.yml · CI workflow · PR template</div>
+      </div>
+    </div>
+    <div class="output-card">
+      <div class="output-title"><div class="output-dot" style="background:var(--blue)"></div>Distribution ready</div>
+      <div class="checklist">
+        <div class="check-item"><span class="check-icon">✓</span>LinkedIn post — Day 0</div>
+        <div class="check-item"><span class="check-icon">✓</span>Reddit post — Day 1</div>
+        <div class="check-item"><span class="check-icon">✓</span>X/Twitter thread — Day 2</div>
+        <div class="check-item"><span class="check-icon">✓</span>DEV.to article — Day 3</div>
+        <div class="check-item"><span class="check-icon">✓</span>Product Hunt copy — Day 4</div>
+        <div class="check-item"><span class="check-icon">✓</span>Show HN + awesome-list PR — Day 5</div>
+      </div>
     </div>
   </div>
-  <div class="features">
-    <div class="feature orange">
-      <h3>⚡ Parallel Agents</h3>
-      <p>4 agents run simultaneously in Phase 1 — research, SVG, topics, and files complete at the same time. 3 parallel phases total.</p>
-    </div>
-    <div class="feature blue">
-      <h3>🎯 SEO Name Scoring</h3>
-      <p>5 name candidates scored on saturation, keyword match, memorability, and signal — before touching anything.</p>
-    </div>
-    <div class="feature green">
-      <h3>🔬 Competitor Research</h3>
-      <p>Agent B mines the top 3 similar repos' READMEs for patterns that convert — headline format, CTA placement, install position.</p>
-    </div>
-    <div class="feature purple">
-      <h3>📅 7-Day Calendar</h3>
-      <p>Distribution isn't a list of platforms — it's a timed plan with exact posting windows for Reddit, X, HN, and awesome-lists.</p>
-    </div>
+</section>
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">MIT License · <a href="https://github.com/Rishiidev/REPO_NAME">GitHub</a> · Built by <a href="https://github.com/Rishiidev">Rishiidev</a></div>
+    <a href="https://github.com/Rishiidev/REPO_NAME" class="footer-star">⭐ Star on GitHub</a>
   </div>
-  <footer>
-    MIT License ·
-    <a href="https://github.com/Rishiidev/REPO_NAME">GitHub</a> ·
-    Built by <a href="https://github.com/Rishiidev">Rishiidev</a>
-  </footer>
-  <script>
-    function copyInstall(el) {
-      const cmd = document.getElementById('install-cmd').textContent;
-      navigator.clipboard.writeText(cmd).then(() => {
-        const hint = el.querySelector('.copy-hint');
-        hint.textContent = '✓ Copied to clipboard';
-        hint.style.color = '#3fb950';
-        setTimeout(() => { hint.textContent = 'Click to copy'; hint.style.color = ''; }, 2000);
-      });
-    }
-  </script>
+</footer>
+<div class="sticky-cta" id="sticky-cta">
+  <div class="sticky-cta-text">Star — takes 2 seconds</div>
+  <a href="https://github.com/Rishiidev/REPO_NAME" class="sticky-cta-btn">⭐ Star</a>
+</div>
+<script>
+  function copyInstall(){const cmd='/plugin install github:Rishiidev/REPO_NAME';const btn=document.getElementById('copy-btn');navigator.clipboard.writeText(cmd).then(()=>{btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Copied';btn.style.color='#3fb950';btn.style.borderColor='#3fb950';setTimeout(()=>{btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';btn.style.color='';btn.style.borderColor='';},2000);}).catch(()=>{btn.textContent='Copy failed';});}
+  const hero=document.querySelector('.hero'),stickyCta=document.getElementById('sticky-cta');
+  if(hero&&stickyCta){const obs=new IntersectionObserver(([e])=>{stickyCta.style.display=e.isIntersecting?'none':'flex';},{threshold:0});obs.observe(hero);}
+</script>
 </body>
 </html>
 ```
 
-Fill in: REPO_NAME, VALUE_PROP_FROM_AGENT_A (both places), 5-WORD-VALUE-PROP.
-No placeholder text left in file.
+No placeholder text left in file. Fill REPO_NAME, VALUE_PROP_FROM_AGENT_A, HERO_HEADLINE, CATEGORY_LABEL, MAIN_TRIGGER before writing.
 
 **2. Commit and push:**
 ```bash
@@ -953,8 +1101,23 @@ If Pages already enabled, skip without error.
 gh repo edit Rishiidev/REPO_NAME --homepage "https://Rishiidev.github.io/REPO_NAME"
 ```
 
-**5. Tell user:**
+**5. If Step 0 Q8 provided a custom domain (CUSTOM_DOMAIN):**
+```bash
+echo "CUSTOM_DOMAIN" > <dir>/docs/CNAME
+git -C <dir> add docs/CNAME
+git -C <dir> commit -m "Add custom domain CNAME"
+git -C <dir> push
+gh repo edit Rishiidev/REPO_NAME --homepage "https://CUSTOM_DOMAIN"
+```
+Tell user:
+"DNS setup — add ONE of these records with your registrar:
+  · Subdomain (e.g. tools.yourdomain.com): CNAME record → Rishiidev.github.io
+  · Apex domain (yourdomain.com): 4 A records → 185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153
+GitHub will provision HTTPS automatically (~10 min after DNS propagates)."
+
+**6. Tell user:**
 "GitHub Pages will be live at https://Rishiidev.github.io/REPO_NAME in ~2 minutes."
+(Use CUSTOM_DOMAIN URL instead if Q8 was provided.)
 
 ---
 
@@ -1406,8 +1569,10 @@ NEWSLETTER PITCHES (Day 0):
 ✓ Labels:      5 created (incl. parallel-agent)
 ✓ Issue #1:    [title]
 ✓ Release:     v1.0.0 [with/without .skill]
-✓ Pages:       live ~2min → Rishiidev.github.io/REPO_NAME
+✓ Pages:       live ~2min → [CUSTOM_DOMAIN if provided, else Rishiidev.github.io/REPO_NAME]
 ✓ Validation:  all checks passed
+✓ Sponsor btn: FUNDING.yml active — enable profile at github.com/sponsors/Rishiidev to activate
+✓ Co-author:   [kept / removed per Step 0 Q7]
 
 AGENTS SPAWNED: 16 (A–P)
 PARALLEL PHASES: 3 (Phase 1: research/gen, Phase 2: config, Phase 3: distribution)

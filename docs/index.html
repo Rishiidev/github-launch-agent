@@ -3,167 +3,347 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="4 parallel agents cut the full GitHub launch pipeline from 20 minutes to 4. Research-backed README, SEO name scoring, auto-embedded social preview, and 7-day distribution calendar.">
-  <meta property="og:title" content="github-launch-agent — Full GitHub Launch in 4 Minutes">
-  <meta property="og:description" content="4 parallel agents. Full GitHub launch in 4 minutes.">
+  <meta name="description" content="16 agents. 3 parallel phases. Full GitHub launch in 4 minutes — research-backed README, SEO name scoring, GitHub Pages, 7-day distribution calendar.">
+  <meta property="og:title" content="github-launch-agent — 20 min → 4">
+  <meta property="og:description" content="16 agents. 3 parallel phases. Full GitHub launch in 4 minutes.">
   <meta property="og:image" content="https://raw.githubusercontent.com/Rishiidev/github-launch-agent/main/assets/social-preview.svg">
-  <title>github-launch-agent — Full GitHub Launch in 4 Minutes</title>
+  <title>github-launch-agent — 20 min → 4</title>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0d1117; color: #e6edf3; font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; }
-    a { color: inherit; }
 
-    .hero { max-width: 960px; margin: 0 auto; padding: 80px 40px 60px; }
-    .hero-img { width: 100%; border-radius: 12px; margin-bottom: 52px; display: block; }
-    h1 { font-size: 52px; font-weight: 800; margin-bottom: 16px; }
-    .tagline { font-size: 22px; color: #8b949e; margin-bottom: 44px; max-width: 680px; }
-
-    .install-section { margin-bottom: 52px; }
-    .install-label { font-size: 12px; color: #484f58; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
-    .install-box {
-      background: #161b22; border-radius: 10px; padding: 22px 26px;
-      border-left: 4px solid #f0883e; cursor: pointer;
-      transition: box-shadow 0.2s, border-color 0.2s;
-      max-width: 680px;
+    :root {
+      --bg:     #0d1117;
+      --bg-2:   #161b22;
+      --bg-3:   #21262d;
+      --border: #30363d;
+      --subtle: #21262d;
+      --text:   #e6edf3;
+      --muted:  #8b949e;
+      --faint:  #484f58;
+      --orange: #f0883e;
+      --blue:   #58a6ff;
+      --green:  #3fb950;
+      --purple: #d2a8ff;
     }
-    .install-box:hover { box-shadow: 0 0 0 1px #f0883e60; }
-    .install-box pre { font-family: 'Courier New', Courier, monospace; font-size: 18px; color: #f0883e; white-space: nowrap; overflow-x: auto; }
-    .copy-hint { font-size: 12px; color: #484f58; margin-top: 10px; transition: color 0.2s; }
 
-    .btns { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 80px; }
-    .btn-primary {
-      background: #f0883e; color: #0d1117; padding: 14px 32px; border-radius: 8px;
-      font-weight: 700; font-size: 17px; text-decoration: none; display: inline-block;
-      transition: opacity 0.15s;
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,17,23,0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--subtle);
+      height: 56px; padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
     }
-    .btn-primary:hover { opacity: 0.9; }
-    .btn-secondary {
-      color: #8b949e; padding: 14px 24px; font-size: 17px; text-decoration: none;
-      display: inline-block; border: 1px solid #30363d; border-radius: 8px;
-      transition: border-color 0.15s, color 0.15s;
+    .nav-brand { display: flex; align-items: center; gap: 9px; font-size: 15px; font-weight: 600; }
+    .nav-dot   { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { font-size: 14px; color: var(--muted); transition: color .15s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-star  { background: var(--orange); color: #0d1117; padding: 7px 16px; border-radius: 7px; font-size: 14px; font-weight: 600; transition: opacity .15s; }
+    .nav-star:hover { opacity: .88; }
+
+    /* ── HERO ── */
+    .hero { max-width: 900px; margin: 0 auto; padding: 80px 32px 56px; }
+    .hero-eyebrow { font-size: 12px; color: var(--orange); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+    .hero-headline {
+      font-size: clamp(64px, 10vw, 96px);
+      font-weight: 800; line-height: .95;
+      letter-spacing: -2px; margin-bottom: 24px;
     }
-    .btn-secondary:hover { border-color: #8b949e; color: #e6edf3; }
+    .hero-headline .arrow { color: var(--orange); }
+    .hero-sub { font-size: 18px; color: var(--muted); max-width: 460px; margin-bottom: 40px; line-height: 1.65; }
 
-    .features { max-width: 960px; margin: 0 auto; padding: 0 40px 80px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .feature { background: #161b22; border-radius: 10px; padding: 28px; border-top: 2px solid transparent; }
-    .feature.orange { border-top-color: #f0883e; }
-    .feature.blue   { border-top-color: #58a6ff; }
-    .feature.green  { border-top-color: #3fb950; }
-    .feature.purple { border-top-color: #d2a8ff; }
-    .feature h3 { font-size: 18px; font-weight: 600; margin-bottom: 10px; }
-    .feature p { color: #8b949e; font-size: 15px; line-height: 1.7; }
+    /* ── TERMINAL ── */
+    .terminal { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; max-width: 560px; }
+    .t-bar { background: var(--bg-3); padding: 10px 14px; display: flex; align-items: center; gap: 7px; border-bottom: 1px solid var(--subtle); }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot-r { background: #e05252; } .dot-y { background: #e0a952; } .dot-g { background: #52c452; }
+    .t-title { font-size: 12px; color: var(--faint); margin: 0 auto; font-family: 'Courier New', monospace; }
+    .t-body { padding: 18px 20px; }
+    .t-line { font-family: 'Courier New', monospace; font-size: clamp(13px, 2.5vw, 16px); }
+    .t-prompt { color: var(--faint); }
+    .t-cmd    { color: var(--orange); }
+    .t-out    { color: var(--green); margin-top: 6px; font-size: 13px; }
+    .t-actions { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+    .t-copy {
+      background: var(--bg-3); border: 1px solid var(--border);
+      color: var(--muted); border-radius: 6px;
+      padding: 0 14px; height: 40px; min-width: 44px;
+      font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: border-color .15s, color .15s;
+      font-family: system-ui, sans-serif;
+    }
+    .t-copy:hover { border-color: var(--muted); color: var(--text); }
+    .t-hint { font-size: 12px; color: var(--faint); }
 
-    .compare { max-width: 960px; margin: 0 auto; padding: 0 40px 80px; }
-    .compare h2 { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
-    table { width: 100%; border-collapse: collapse; font-size: 15px; }
-    th { text-align: left; padding: 12px 16px; background: #161b22; color: #8b949e; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
-    td { padding: 12px 16px; border-bottom: 1px solid #21262d; }
-    td strong { color: #f0883e; }
+    /* ── SHARED SECTION WRAPPER ── */
+    .section { max-width: 900px; margin: 0 auto; padding: 0 32px 64px; }
+    .section-head { margin-bottom: 28px; }
+    .section-head h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .section-head p  { font-size: 15px; color: var(--muted); }
+
+    /* ── PIPELINE ── */
+    .timeline { display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+    .t-row { display: flex; align-items: center; gap: 14px; }
+    .t-label { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; width: 84px; text-align: right; flex-shrink: 0; }
+    .t-track { flex: 1; height: 32px; background: var(--bg-2); border-radius: 6px; position: relative; overflow: hidden; border: 1px solid var(--subtle); }
+    .t-time  { font-size: 12px; font-family: 'Courier New', monospace; width: 52px; flex-shrink: 0; }
+
+    .seq-bar { position: absolute; inset: 0; display: flex; gap: 2px; padding: 3px; }
+    .seq-seg { flex: 1; background: var(--bg-3); border-radius: 3px; }
+
+    .par-bar { position: absolute; inset: 4px; display: flex; gap: 3px; }
+    .par-seg { height: 100%; border-radius: 3px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; font-family: 'Courier New', monospace; font-weight: 600; white-space: nowrap; }
+
+    .agents-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .agent-card { background: var(--bg-2); border: 1px solid var(--subtle); border-radius: 8px; padding: 13px 15px; display: flex; gap: 10px; }
+    .agent-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .agent-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .agent-desc { font-size: 12px; color: var(--muted); }
+
+    /* ── OUTPUT ── */
+    .output-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .output-card { background: var(--bg-2); border: 1px solid var(--subtle); border-radius: 10px; padding: 22px; }
+    .output-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .output-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .checklist { display: flex; flex-direction: column; gap: 9px; }
+    .check-item { font-size: 13px; color: var(--muted); display: flex; gap: 8px; line-height: 1.45; }
+    .check-icon { color: var(--green); flex-shrink: 0; }
+
+    /* ── COMPARE ── */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 10px 14px; background: var(--bg-2); color: var(--faint); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--subtle); }
+    td { padding: 11px 14px; border-bottom: 1px solid var(--subtle); }
+    td strong { color: var(--orange); }
     tr:last-child td { border-bottom: none; }
 
-    footer { text-align: center; padding: 48px 40px; color: #484f58; font-size: 14px; border-top: 1px solid #161b22; }
-    footer a { color: #8b949e; text-decoration: none; }
-    footer a:hover { color: #e6edf3; }
+    /* ── FOOTER ── */
+    footer { border-top: 1px solid var(--subtle); }
+    .footer-inner { max-width: 900px; margin: 0 auto; padding: 32px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .footer-left { font-size: 13px; color: var(--faint); }
+    .footer-left a { color: var(--muted); transition: color .15s; }
+    .footer-left a:hover { color: var(--text); }
+    .footer-star { background: var(--bg-2); border: 1px solid var(--border); color: var(--muted); padding: 8px 18px; border-radius: 7px; font-size: 13px; transition: border-color .15s, color .15s; }
+    .footer-star:hover { border-color: var(--muted); color: var(--text); }
 
+    /* ── MOBILE STICKY ── */
+    .sticky-cta { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-2); border-top: 1px solid var(--border); padding: 14px 20px; align-items: center; justify-content: space-between; z-index: 50; }
+    .sticky-cta-text { font-size: 14px; color: var(--muted); }
+    .sticky-cta-btn  { background: var(--orange); color: #0d1117; padding: 10px 20px; border-radius: 7px; font-size: 14px; font-weight: 600; white-space: nowrap; }
+
+    /* ── RESPONSIVE ── */
     @media (max-width: 720px) {
-      .hero { padding: 40px 24px 40px; }
-      h1 { font-size: 36px; }
-      .tagline { font-size: 18px; }
-      .install-box pre { font-size: 14px; }
-      .features { grid-template-columns: 1fr; }
-      .compare, .features { padding-left: 24px; padding-right: 24px; }
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 48px 20px 40px; }
+      .section { padding-left: 20px; padding-right: 20px; }
+      .agents-grid, .output-grid { grid-template-columns: 1fr; }
+      .footer-inner { padding: 24px 20px; flex-direction: column; gap: 16px; text-align: center; }
+      .sticky-cta { display: flex; }
+      body { padding-bottom: 72px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="hero">
-    <img
-      class="hero-img"
-      src="https://raw.githubusercontent.com/Rishiidev/github-launch-agent/main/assets/social-preview.svg"
-      alt="github-launch-agent — 4 parallel agents, full GitHub launch in 4 minutes"
-    >
-    <h1>github-launch-agent</h1>
-    <p class="tagline">4 parallel agents cut the full GitHub launch pipeline from 20 minutes to 4. Research-backed README. SEO name scoring. GitHub Pages. 7-day distribution calendar.</p>
+<nav>
+  <div class="nav-brand">
+    <div class="nav-dot"></div>
+    github-launch-agent
+  </div>
+  <div class="nav-links">
+    <a href="#install">install</a>
+    <a href="#pipeline">how it works</a>
+    <a href="https://github.com/Rishiidev/github-launch-agent#readme">docs</a>
+    <a href="https://github.com/Rishiidev/github-launch-agent">GitHub</a>
+  </div>
+  <a href="https://github.com/Rishiidev/github-launch-agent" class="nav-star">⭐ Star</a>
+</nav>
 
-    <div class="install-section">
-      <div class="install-label">Install in Claude Code</div>
-      <div class="install-box" onclick="copyInstall(this)" title="Click to copy">
-        <pre>/plugin install github:Rishiidev/github-launch-agent</pre>
-        <div class="copy-hint">Click to copy</div>
+<!-- HERO -->
+<section class="hero" id="install">
+  <div class="hero-eyebrow">Claude Code skill</div>
+  <div class="hero-headline">20 min<br><span class="arrow">→ 4.</span></div>
+  <p class="hero-sub">16 agents. 3 parallel phases. Research-backed README, SEO name scoring, GitHub Pages, and a 7-day distribution calendar.</p>
+
+  <div class="terminal">
+    <div class="t-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <div class="t-title">claude — bash</div>
+    </div>
+    <div class="t-body">
+      <div class="t-line">
+        <span class="t-prompt">$ </span><span class="t-cmd">/plugin install github:Rishiidev/github-launch-agent</span>
+      </div>
+      <div class="t-line t-out">✓ Installed. Type "agentic github launch" to start.</div>
+      <div class="t-actions">
+        <button class="t-copy" id="copy-btn" onclick="copyInstall()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+        <span class="t-hint">Works in Claude Code · Cowork · Claude.ai</span>
       </div>
     </div>
+  </div>
+</section>
 
-    <div class="btns">
-      <a href="https://github.com/Rishiidev/github-launch-agent" class="btn-primary">⭐ Star on GitHub</a>
-      <a href="https://github.com/Rishiidev/github-launch-agent#readme" class="btn-secondary">View docs →</a>
+<!-- PIPELINE -->
+<section class="section" id="pipeline">
+  <div class="section-head">
+    <h2>The same work, done in parallel</h2>
+    <p>Sequential tools run steps one at a time. This doesn't.</p>
+  </div>
+
+  <div class="timeline">
+    <div class="t-row">
+      <div class="t-label" style="color:var(--faint)">sequential</div>
+      <div class="t-track">
+        <div class="seq-bar">
+          <div class="seq-seg"></div><div class="seq-seg"></div><div class="seq-seg"></div>
+          <div class="seq-seg"></div><div class="seq-seg"></div><div class="seq-seg"></div>
+          <div class="seq-seg"></div><div class="seq-seg"></div><div class="seq-seg"></div>
+          <div class="seq-seg"></div><div class="seq-seg"></div><div class="seq-seg"></div>
+          <div class="seq-seg"></div><div class="seq-seg"></div>
+        </div>
+      </div>
+      <div class="t-time" style="color:var(--faint)">~20 min</div>
+    </div>
+    <div class="t-row">
+      <div class="t-label" style="color:var(--orange);font-weight:600">parallel</div>
+      <div class="t-track">
+        <div class="par-bar">
+          <div class="par-seg" style="flex:2;background:#58a6ff18;border:1px solid #58a6ff44;color:var(--blue)">Phase 1 · 4 agents</div>
+          <div class="par-seg" style="flex:1.5;background:#3fb95018;border:1px solid #3fb95044;color:var(--green)">Phase 2</div>
+          <div class="par-seg" style="flex:4;background:#f0883e18;border:1px solid #f0883e44;color:var(--orange)">Phase 3 · 8 agents</div>
+        </div>
+      </div>
+      <div class="t-time" style="color:var(--orange);font-weight:600">~4 min</div>
     </div>
   </div>
 
-  <div class="features">
-    <div class="feature orange">
-      <h3>⚡ 3 Parallel Phases</h3>
-      <p>12 agents across 3 phases. Phase 1: research, SVG, topics, and files run simultaneously. Phase 2: post-push config. Phase 3: all 4 distribution drafts.</p>
+  <div class="agents-grid">
+    <div class="agent-card">
+      <div class="agent-dot" style="background:var(--blue)"></div>
+      <div><div class="agent-name">Agent A — project intelligence</div><div class="agent-desc">Reads your files, extracts value prop, measurable benefit, trigger phrases</div></div>
     </div>
-    <div class="feature blue">
-      <h3>🎯 SEO Name Scoring</h3>
-      <p>5 candidates scored on search saturation, keyword match, memorability, and category signal — ranked before any other input is collected.</p>
+    <div class="agent-card">
+      <div class="agent-dot" style="background:var(--green)"></div>
+      <div><div class="agent-name">Agent B — competitor research</div><div class="agent-desc">Mines top 3 similar repos' READMEs for headline format, CTA placement</div></div>
     </div>
-    <div class="feature green">
-      <h3>🔬 Competitor Research</h3>
-      <p>Agent B mines the top 3 similar repos' READMEs: headline format, install placement, CTA position, value prop style. Your README is written from a benchmark.</p>
+    <div class="agent-card">
+      <div class="agent-dot" style="background:var(--orange)"></div>
+      <div><div class="agent-name">Agent C — social preview SVG</div><div class="agent-desc">Generates and auto-embeds the social preview as README hero image</div></div>
     </div>
-    <div class="feature purple">
-      <h3>📅 7-Day Calendar</h3>
-      <p>Not a list of platforms — a timed plan. Reddit on Day 1, X/Twitter Day 2, awesome-list Day 3, HN on Day 5 only after reaching 10 stars.</p>
+    <div class="agent-card">
+      <div class="agent-dot" style="background:var(--purple)"></div>
+      <div><div class="agent-name">Agent D — supporting files</div><div class="agent-desc">CHANGELOG · SECURITY · FUNDING · PR template · LICENSE · .gitignore</div></div>
     </div>
   </div>
+</section>
 
-  <div class="compare">
-    <h2>Base vs Agentic</h2>
-    <table>
-      <thead>
-        <tr>
-          <th></th>
-          <th>claude-github-launch</th>
-          <th>github-launch-agent</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>Time</td><td>~15–20 min</td><td><strong>~4–6 min</strong></td></tr>
-        <tr><td>Execution</td><td>Sequential, 14 steps</td><td><strong>Parallel, 3 phases, 12 agents</strong></td></tr>
-        <tr><td>README quality</td><td>From project files</td><td><strong>+ competitor research</strong></td></tr>
-        <tr><td>Name decision</td><td>"I'll suggest one"</td><td><strong>5 scored candidates</strong></td></tr>
-        <tr><td>Repo description</td><td>1 generated</td><td><strong>5 scored, you pick</strong></td></tr>
-        <tr><td>Social preview</td><td>Generated + manual upload</td><td><strong>Auto-embedded in README</strong></td></tr>
-        <tr><td>GitHub Pages</td><td>✗</td><td><strong>✓ landing page + homepage</strong></td></tr>
-        <tr><td>Distribution</td><td>Ready-to-paste text</td><td><strong>Text + 7-day timed calendar</strong></td></tr>
-      </tbody>
-    </table>
+<!-- OUTPUT -->
+<section class="section">
+  <div class="section-head">
+    <h2>What you get</h2>
+    <p>Files and content, ready before you finish your coffee.</p>
   </div>
+  <div class="output-grid">
+    <div class="output-card">
+      <div class="output-title"><div class="output-dot" style="background:var(--orange)"></div>Built in 4 minutes</div>
+      <div class="checklist">
+        <div class="check-item"><span class="check-icon">✓</span>README with competitor-benchmarked structure</div>
+        <div class="check-item"><span class="check-icon">✓</span>Social preview SVG embedded as hero image</div>
+        <div class="check-item"><span class="check-icon">✓</span>GitHub Pages site with click-to-copy install</div>
+        <div class="check-item"><span class="check-icon">✓</span>20 SEO topics + tailored good-first-issue</div>
+        <div class="check-item"><span class="check-icon">✓</span>Release v1.0.0 with .skill file attached</div>
+        <div class="check-item"><span class="check-icon">✓</span>SECURITY.md · FUNDING.yml · CI workflow · PR template</div>
+      </div>
+    </div>
+    <div class="output-card">
+      <div class="output-title"><div class="output-dot" style="background:var(--blue)"></div>Distribution content ready</div>
+      <div class="checklist">
+        <div class="check-item"><span class="check-icon">✓</span>LinkedIn post — Day 0</div>
+        <div class="check-item"><span class="check-icon">✓</span>Reddit r/ClaudeAI post — Day 1</div>
+        <div class="check-item"><span class="check-icon">✓</span>X/Twitter 4-tweet thread — Day 2</div>
+        <div class="check-item"><span class="check-icon">✓</span>DEV.to technical article — Day 3</div>
+        <div class="check-item"><span class="check-icon">✓</span>Product Hunt copy — Day 4</div>
+        <div class="check-item"><span class="check-icon">✓</span>Show HN + awesome-list PR — Day 5</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <footer>
-    MIT License &nbsp;·&nbsp;
-    <a href="https://github.com/Rishiidev/github-launch-agent">GitHub</a> &nbsp;·&nbsp;
-    Built by <a href="https://github.com/Rishiidev">Rishiidev</a>
-  </footer>
+<!-- COMPARE -->
+<section class="section">
+  <div class="section-head">
+    <h2>Base vs agentic</h2>
+    <p>Both do the full pipeline. One does it in parallel.</p>
+  </div>
+  <table>
+    <thead>
+      <tr><th></th><th>claude-github-launch</th><th>github-launch-agent</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Time</td><td style="color:var(--faint)">~15–20 min</td><td><strong>~4–6 min</strong></td></tr>
+      <tr><td>Execution</td><td style="color:var(--faint)">Sequential, 14 steps</td><td><strong>Parallel, 3 phases, 16 agents</strong></td></tr>
+      <tr><td>README</td><td style="color:var(--faint)">From project files</td><td><strong>+ competitor research</strong></td></tr>
+      <tr><td>Repo name</td><td style="color:var(--faint)">"I'll suggest one"</td><td><strong>5 scored candidates</strong></td></tr>
+      <tr><td>GitHub Pages</td><td style="color:var(--faint)">✗</td><td><strong>✓ landing page + homepage</strong></td></tr>
+      <tr><td>Distribution</td><td style="color:var(--faint)">Ready-to-paste text</td><td><strong>8 drafts + 7-day timed calendar</strong></td></tr>
+    </tbody>
+  </table>
+</section>
 
-  <script>
-    function copyInstall(el) {
-      const cmd = el.querySelector('pre').textContent.trim();
-      navigator.clipboard.writeText(cmd).then(() => {
-        const hint = el.querySelector('.copy-hint');
-        hint.textContent = '✓ Copied to clipboard';
-        hint.style.color = '#3fb950';
-        setTimeout(() => {
-          hint.textContent = 'Click to copy';
-          hint.style.color = '';
-        }, 2000);
-      }).catch(() => {
-        const hint = el.querySelector('.copy-hint');
-        hint.textContent = 'Copy: ' + cmd;
-      });
-    }
-  </script>
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">
+      MIT License &nbsp;·&nbsp;
+      <a href="https://github.com/Rishiidev/github-launch-agent">GitHub</a> &nbsp;·&nbsp;
+      Built by <a href="https://github.com/Rishiidev">Rishiidev</a>
+    </div>
+    <a href="https://github.com/Rishiidev/github-launch-agent" class="footer-star">⭐ Star on GitHub</a>
+  </div>
+</footer>
+
+<!-- Mobile sticky CTA — only visible after hero scrolls out of view -->
+<div class="sticky-cta" id="sticky-cta">
+  <div class="sticky-cta-text">Star — takes 2 seconds</div>
+  <a href="https://github.com/Rishiidev/github-launch-agent" class="sticky-cta-btn">⭐ Star</a>
+</div>
+
+<script>
+  function copyInstall() {
+    const cmd = '/plugin install github:Rishiidev/github-launch-agent';
+    const btn = document.getElementById('copy-btn');
+    navigator.clipboard.writeText(cmd).then(() => {
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Copied';
+      btn.style.color = '#3fb950';
+      btn.style.borderColor = '#3fb950';
+      setTimeout(() => {
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }, 2000);
+    }).catch(() => { btn.textContent = 'Copy failed — paste manually'; });
+  }
+
+  const hero = document.querySelector('.hero');
+  const stickyCta = document.getElementById('sticky-cta');
+  if (hero && stickyCta) {
+    const obs = new IntersectionObserver(([e]) => {
+      stickyCta.style.display = e.isIntersecting ? 'none' : 'flex';
+    }, { threshold: 0 });
+    obs.observe(hero);
+  }
+</script>
 </body>
 </html>
