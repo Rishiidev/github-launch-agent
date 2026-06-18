@@ -19,40 +19,6 @@ description: >
   Improve mode (existing repos): "improve my repo", "upgrade github repo",
   "audit my github repo", "fix my readme", "enhance my repo",
   "github health check", "what's missing from my repo".
-
-onInstall: >
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  ⚡  github-launch-agent installed — v2.0.0
-
-  16 parallel agents. 3 modes. ~4 minutes for a full launch.
-
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  🚀  LAUNCH MODE  — fresh repo from scratch
-      Say: "agentic github launch"
-      What happens: SEO name scoring → competitor research →
-      social preview SVG → GitHub Pages → Product Hunt draft →
-      LinkedIn post → newsletter pitches → 7-day calendar.
-      Time: ~4 min.
-
-  ⚡  LITE MODE  — same pipeline, skip distribution
-      Say: "fast push" or "quick push"
-      What happens: everything in Launch except Phase 3 posts.
-      Time: ~2 min.
-
-  🔧  IMPROVE MODE  — upgrade a repo that already exists
-      Say: "improve my repo" or "github health check"
-      What happens: 6 parallel audit agents score your repo on
-      18 dimensions, rank every gap by ROI, then fix only what
-      you confirm. Never overwrites without showing a diff first.
-
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  I'll only ask 3 questions. Everything else is auto-detected.
-  Type "github launch help" anytime to see this again.
-
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ---
 
 # GitHub Launch Agent — Parallel Pipeline
