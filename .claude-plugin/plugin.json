@@ -1,7 +1,7 @@
 {
   "name": "github-launch-agent",
-  "description": "Full GitHub launch in 4 minutes — 12 parallel agents across 3 phases with competitor research, SEO name scoring, auto-embedded social preview, GitHub Pages, and 7-day distribution calendar.",
-  "version": "1.0.0",
+  "description": "Full GitHub launch in 4 minutes — 16 parallel agents across 3 phases with competitor research, SEO name scoring, auto-embedded social preview, GitHub Pages, and 7-day distribution calendar. Includes Improve Mode for upgrading existing repos.",
+  "version": "2.0.0",
   "author": { "name": "Rishiidev" },
   "homepage": "https://Rishiidev.github.io/github-launch-agent",
   "repository": "https://github.com/Rishiidev/github-launch-agent",

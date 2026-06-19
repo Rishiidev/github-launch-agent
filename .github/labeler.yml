@@ -1,0 +1,32 @@
+# .github/labeler.yml
+# Auto-apply labels to PRs based on changed paths
+# https://github.com/actions/labeler
+
+documentation:
+  - docs/**/*
+  - '**/*.md'
+  - '**/README.md'
+  - CHANGELOG.md
+
+skill-engine:
+  - skills/**/*
+  - SKILL.md
+  - '**/SKILL.md'
+
+plugin-config:
+  - .claude-plugin/**/*
+
+ci-cd:
+  - .github/workflows/**/*
+  - .github/CODEOWNERS
+
+pages:
+  - docs/**/*
+  - docs/index.html
+
+distribution:
+  - .github/ISSUE_TEMPLATE/**/*
+
+parallel-agent:
+  - skills/**/SKILL.md
+  - '**/parallel*'

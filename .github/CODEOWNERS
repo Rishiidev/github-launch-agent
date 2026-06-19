@@ -1,0 +1,14 @@
+# CODEOWNERS — route all reviews to the maintainer
+# Lines starting with `#` are comments.
+# Each line is a file pattern followed by one or more owners.
+
+# Default owners for everything in this repo
+*       @Rishiidev
+
+# Skill prompts are the core — extra review on changes here
+/skills/         @Rishiidev
+/.claude-plugin/ @Rishiidev
+/docs/           @Rishiidev
+
+# CI / release plumbing
+/.github/workflows/ @Rishiidev
