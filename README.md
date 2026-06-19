@@ -242,6 +242,7 @@ Enabled via GitHub API — no manual steps.
 |-------|-------------|-------------|
 | [claude-github-launch](https://github.com/Rishiidev/claude-github-launch) | Sequential 14-step launch pipeline | Prefer step-by-step control, 15–20 min |
 | **github-launch-agent** (this) | 16-agent parallel pipeline | Want it done in 4 min with research-backed output |
+| [seed-discussions](https://github.com/Rishiidev/seed-discussions) | Seeds 5 tailored Discussion posts in 60 sec | After launch — activate your Discussions community |
 
 ---
 
