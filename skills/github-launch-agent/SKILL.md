@@ -9,7 +9,8 @@ description: >
 
   Triggers: "agentic github launch", "parallel github launch", "launch agent",
   "github launch agent", "push to github fast", "agentic launch",
-  "parallel launch", "launch with agents".
+  "parallel launch", "launch with agents", "launch my skill",
+  "ship to github", "github release setup".
 
   Lite mode (skip Phase 3): "fast push", "quick push", "push now", "lite launch".
 
