@@ -1,0 +1,13 @@
+{
+  "projectName": "github-launch-agent",
+  "projectOwner": "Rishiidev",
+  "files": ["README.md"],
+  "contributors": [
+    {
+      "login": "Rishiidev",
+      "name": "Rishiidev",
+      "contributions": ["code", "projectManagement"]
+    }
+  ],
+  "contributorsPerLine": 7
+}

@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/github/license/Rishiidev/github-launch-agent?style=for-the-badge)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue?style=for-the-badge)](https://github.com/Rishiidev/github-launch-agent/releases)
 
-*Works in Claude Code · Cowork · Claude.ai — no CLI setup, one trigger phrase.*
+_Works in Claude Code · Cowork · Claude.ai — no CLI setup, one trigger phrase._
 
 </div>
 
@@ -34,6 +34,7 @@ agentic github launch
 ```
 
 Phase 1 spawns 4 agents simultaneously:
+
 - **Agent A** reads your project, extracts the value prop and measurable benefit
 - **Agent B** researches the top 3 similar repos and mines their README patterns
 - **Agent C** generates the social preview SVG and embeds it in your README
@@ -80,16 +81,16 @@ Same steps as above — Skills → + → Upload skill → drop the `.skill` file
 
 ## Base vs Agentic
 
-| | `claude-github-launch` | **`github-launch-agent` (this)** |
-|-|----------------------|--------------------------------|
-| Time | ~15–20 min | **~4–6 min** |
-| Execution | Sequential, 14 steps | **Parallel, 3 phases, 16 agents** |
-| README quality | From your project files | **+ competitor README research** |
-| Name decision | "I'll suggest one" | **5 candidates scored, ranked** |
-| Repo description | 1 generated | **5 scored, you pick** |
-| Social preview | Generated + manual upload | **Auto-embedded in README header** |
-| GitHub Pages | ✗ | **✓ landing page + repo homepage** |
-| Distribution | Ready-to-paste text | **Text + 7-day timed calendar** |
+|                  | `claude-github-launch`    | **`github-launch-agent` (this)**   |
+| ---------------- | ------------------------- | ---------------------------------- |
+| Time             | ~15–20 min                | **~4–6 min**                       |
+| Execution        | Sequential, 14 steps      | **Parallel, 3 phases, 16 agents**  |
+| README quality   | From your project files   | **+ competitor README research**   |
+| Name decision    | "I'll suggest one"        | **5 candidates scored, ranked**    |
+| Repo description | 1 generated               | **5 scored, you pick**             |
+| Social preview   | Generated + manual upload | **Auto-embedded in README header** |
+| GitHub Pages     | ✗                         | **✓ landing page + repo homepage** |
+| Distribution     | Ready-to-paste text       | **Text + 7-day timed calendar**    |
 
 ---
 
@@ -187,12 +188,12 @@ your-project/
 
 ## What Never Gets Touched
 
-| Protected | Why |
-|-----------|-----|
-| Existing SKILL.md | Never overwritten — checked before writing |
-| `.env` files | Pipeline stops if any found, lists them all |
-| Git history | Commit message adapts, history never rewritten |
-| Repo homepage | Only set to GitHub Pages URL — never the repo itself |
+| Protected         | Why                                                  |
+| ----------------- | ---------------------------------------------------- |
+| Existing SKILL.md | Never overwritten — checked before writing           |
+| `.env` files      | Pipeline stops if any found, lists them all          |
+| Git history       | Commit message adapts, history never rewritten       |
+| Repo homepage     | Only set to GitHub Pages URL — never the repo itself |
 
 ---
 
@@ -200,6 +201,7 @@ your-project/
 
 When enabled (default: yes), the skill auto-generates `docs/index.html` — a dark-themed
 landing page at `your-username.github.io/<repo-name>` with:
+
 - Social preview as hero image (via raw GitHub URL, no path issues)
 - Click-to-copy install command
 - Feature cards
@@ -212,16 +214,16 @@ Enabled via GitHub API — no manual steps.
 
 ## Trigger Phrases
 
-| Say this | Result |
-|----------|--------|
-| `agentic github launch` | Full parallel pipeline |
-| `parallel github launch` | Full parallel pipeline |
-| `fast github launch` | Full parallel pipeline |
-| `launch agent` | Full parallel pipeline |
-| `push to github` | Full parallel pipeline (overrides base skill if both installed) |
-| `github everything` | Full parallel pipeline |
-| `github launch` | Full parallel pipeline |
-| `publish skill` | Full parallel pipeline |
+| Say this                 | Result                                                          |
+| ------------------------ | --------------------------------------------------------------- |
+| `agentic github launch`  | Full parallel pipeline                                          |
+| `parallel github launch` | Full parallel pipeline                                          |
+| `fast github launch`     | Full parallel pipeline                                          |
+| `launch agent`           | Full parallel pipeline                                          |
+| `push to github`         | Full parallel pipeline (overrides base skill if both installed) |
+| `github everything`      | Full parallel pipeline                                          |
+| `github launch`          | Full parallel pipeline                                          |
+| `publish skill`          | Full parallel pipeline                                          |
 
 ---
 
@@ -232,17 +234,29 @@ Enabled via GitHub API — no manual steps.
 <!-- agg demo.cast assets/demo.gif && then add: -->
 <!-- ![demo](assets/demo.gif) -->
 
-*Recording guide: [`.github/record-demo.sh`](.github/record-demo.sh)*
+_Recording guide: [`.github/record-demo.sh`](.github/record-demo.sh)_
+
+---
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+We recognize everyone who helps improve the project, whether through code, documentation, demos, testing, or community outreach.
+
+See [CONTRIBUTORS.md](./CONTRIBUTORS.md).
 
 ---
 
 ## See Also
 
-| Skill | What it does | When to use |
-|-------|-------------|-------------|
-| [claude-github-launch](https://github.com/Rishiidev/claude-github-launch) | Sequential 14-step launch pipeline | Prefer step-by-step control, 15–20 min |
-| **github-launch-agent** (this) | 16-agent parallel pipeline | Want it done in 4 min with research-backed output |
-| [seed-discussions](https://github.com/Rishiidev/seed-discussions) | Seeds 5 tailored Discussion posts in 60 sec | After launch — activate your Discussions community |
+| Skill                                                                     | What it does                                | When to use                                        |
+| ------------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------- |
+| [claude-github-launch](https://github.com/Rishiidev/claude-github-launch) | Sequential 14-step launch pipeline          | Prefer step-by-step control, 15–20 min             |
+| **github-launch-agent** (this)                                            | 16-agent parallel pipeline                  | Want it done in 4 min with research-backed output  |
+| [seed-discussions](https://github.com/Rishiidev/seed-discussions)         | Seeds 5 tailored Discussion posts in 60 sec | After launch — activate your Discussions community |
 
 ---
 
